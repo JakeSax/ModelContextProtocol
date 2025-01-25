@@ -5,20 +5,57 @@ import PackageDescription
 
 let package = Package(
     name: "ModelContextProtocol",
+    platforms: [
+        .macOS(.v13), .iOS(.v16)
+    ],
     products: [
-        // Products define the executables and libraries a package produces, making them visible to other packages.
+        // Users can import just Core, or choose Client or Server as well.
         .library(
-            name: "ModelContextProtocol",
-            targets: ["ModelContextProtocol"]),
+            name: "MCPCore",
+            targets: ["MCPCore"]
+        ),
+        .library(
+            name: "MCPClient",
+            targets: ["MCPClient"]
+        ),
+        .library(
+            name: "MCPServer",
+            targets: ["MCPServer"]
+        )
+    ],
+    dependencies: [
+        // Add any dependencies your package needs
     ],
     targets: [
-        // Targets are the basic building blocks of a package, defining a module or a test suite.
-        // Targets can depend on other targets in this package and products from dependencies.
         .target(
-            name: "ModelContextProtocol"),
-        .testTarget(
-            name: "ModelContextProtocolTests",
-            dependencies: ["ModelContextProtocol"]
+            name: "MCPCore",
+            dependencies: [],
+            path: "Sources/Core"
         ),
+        .target(
+            name: "MCPClient",
+            dependencies: ["MCPCore"],
+            path: "Sources/Client"
+        ),
+        .target(
+            name: "MCPServer",
+            dependencies: ["MCPCore"],
+            path: "Sources/Server"
+        ),
+        .testTarget(
+            name: "MCPCoreTests",
+            dependencies: ["MCPCore"],
+            path: "Tests/CoreTests"
+        ),
+        .testTarget(
+            name: "MCPClientTests",
+            dependencies: ["MCPClient"],
+            path: "Tests/ClientTests"
+        ),
+        .testTarget(
+            name: "MCPServerTests",
+            dependencies: ["MCPServer"],
+            path: "Tests/ServerTests"
+        )
     ]
 )
