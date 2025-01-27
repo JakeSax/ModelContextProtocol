@@ -10,6 +10,7 @@ import Foundation
 /// Represents a request ID, which can be either a string or an integer.
 public typealias RequestID = StringOrIntValue
 
+/// A Codable value that may be a String or an Int.
 public enum StringOrIntValue: Codable, Equatable, Sendable {
     
     // MARK: Cases

@@ -5,20 +5,13 @@
 //  Created by Jake Sax on 1/26/25.
 //
 
-import Foundation
-
-public protocol MethodIdentified<MethodIdentifier>: Codable, Sendable {
-    static var method: MethodIdentifier { get }
-    var method: MethodIdentifier { get }
-    associatedtype MethodIdentifier: AnyMethodIdentifier
+/// A Notification identified by a ``ServerNotification.Method`` in its `method` property.
+public protocol AnyServerNotification: MethodIdentified where MethodIdentifier == ServerNotification.Method {
 }
 
-public protocol AnyServerNotification: MethodIdentified {
-    var method: ServerNotification.Method { get }
-}
-
-/// Union type representing all possible server notifications
+/// An enumeration of all the possible server notifications.
 public enum ServerNotification: Codable, Sendable {
+    
     case cancelled(CancelledNotification)
     case progress(ProgressNotification)
     case resourceListChanged(ResourceListChangedNotification)
@@ -27,6 +20,7 @@ public enum ServerNotification: Codable, Sendable {
     case toolListChanged(ToolListChangedNotification)
     case loggingMessage(LoggingMessageNotification)
     
+    // MARK: Data Structures
     public enum Method: String, AnyMethodIdentifier {
         case cancelled = "notifications/cancelled"
         case progress = "notifications/progress"
@@ -83,4 +77,39 @@ public enum ServerNotification: Codable, Sendable {
         }
     }
 
+}
+
+
+/// A notification containing a log message from server to client
+public struct LoggingMessageNotification: AnyServerNotification {
+    public static let method: ServerNotification.Method = .loggingMessage
+    
+    /// The method identifier for logging notifications
+    public let method: ServerNotification.Method
+    
+    public let params: Params
+    
+    /// Parameters containing the log message details
+    public struct Params: Codable, Sendable {
+        /// The log message content
+        public let data: DynamicValue
+        
+        /// The severity level of the message
+        public let level: LoggingLevel
+        
+        /// Optional name of the logger
+        public let logger: String?
+        
+        public init(data: DynamicValue, level: LoggingLevel, logger: String? = nil) {
+            self.data = data
+            self.level = level
+            self.logger = logger
+        }
+    }
+    
+    
+    public init(params: Params) {
+        self.params = params
+        self.method = Self.method
+    }
 }

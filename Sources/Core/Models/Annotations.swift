@@ -5,8 +5,6 @@
 //  Created by Jake Sax on 1/26/25.
 //
 
-import Foundation
-
 /// Base protocol for objects that include optional annotations for client use.
 /// Clients can use annotations to inform how objects are used or displayed.
 public protocol Annotated {

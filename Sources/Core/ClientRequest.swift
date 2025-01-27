@@ -1,17 +1,16 @@
 //
-//  File.swift
+//  ClientRequest.swift
 //  ModelContextProtocol
 //
 //  Created by Jake Sax on 1/26/25.
 //
 
-import Foundation
-
-
-// MARK: - Client Requests
+/// A Request identified by a ``ClientRequest.Method`` in its `method` property.
 public protocol AnyClientRequest: MethodIdentified where MethodIdentifier == ClientRequest.Method {}
 
+/// An enumeration of all the possible client requests.
 public enum ClientRequest: Codable, Sendable {
+    
     case initialize(InitializeRequest)
     case ping(PingRequest)
     case listResources(ListResourcesRequest)
@@ -26,6 +25,7 @@ public enum ClientRequest: Codable, Sendable {
     case setLevel(SetLevelRequest)
     case complete(CompleteRequest)
     
+    // MARK: Data Structures
     public enum Method: String, AnyMethodIdentifier {
         case initialize
         case ping
@@ -42,6 +42,7 @@ public enum ClientRequest: Codable, Sendable {
         case complete = "completion/complete"
     }
     
+    // MARK: Codable Conformance
     private enum CodingKeys: String, CodingKey {
         case method
     }

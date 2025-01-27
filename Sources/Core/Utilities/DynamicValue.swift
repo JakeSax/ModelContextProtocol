@@ -5,8 +5,6 @@
 //  Created by Jake Sax on 1/25/25.
 //
 
-import Foundation
-
 /// A flexible data structure for handling various JSON-compatible values within MCP.
 public enum DynamicValue: Codable, Sendable {
     

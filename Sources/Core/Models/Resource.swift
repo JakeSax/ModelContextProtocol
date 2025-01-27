@@ -5,8 +5,6 @@
 //  Created by Jake Sax on 1/24/25.
 //
 
-import Foundation
-
 /// A known resource that the server is capable of reading.
 public struct Resource: Codable, Sendable {
     
