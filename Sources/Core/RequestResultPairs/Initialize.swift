@@ -6,7 +6,7 @@
 //
 
 /// Request sent from client to server when first connecting to begin initialization.
-public struct InitializeRequest: Codable, Sendable {
+public struct InitializeRequest: Request {
     /// Initialize method identifier
     public let method: ClientRequest.Method
     
@@ -14,7 +14,7 @@ public struct InitializeRequest: Codable, Sendable {
     public let params: Parameters
     
     /// Parameters for the initialize request
-    public struct Parameters: Codable, Sendable {
+    public struct Parameters: RequestParameters {
         /// Client's supported capabilities
         public let capabilities: ClientCapabilities
         
@@ -24,14 +24,18 @@ public struct InitializeRequest: Codable, Sendable {
         /// Latest supported MCP version. Client may support older versions.
         public let protocolVersion: String
         
+        public let _meta: RequestMetadata?
+        
         public init(
             capabilities: ClientCapabilities,
             clientInfo: Implementation,
-            protocolVersion: String
+            protocolVersion: String,
+            meta: RequestMetadata? = nil
         ) {
             self.capabilities = capabilities
             self.clientInfo = clientInfo
             self.protocolVersion = protocolVersion
+            self._meta = meta
         }
     }
     
@@ -56,14 +60,14 @@ public struct InitializeResult: Codable, Sendable {
     public let instructions: String?
     
     /// Additional metadata attached to the response
-    public let metadata: DynamicValue?
+    public let metadata: Result?
     
     public init(
         capabilities: ServerCapabilities,
         protocolVersion: String,
         serverInfo: Implementation,
         instructions: String? = nil,
-        metadata: DynamicValue? = nil
+        metadata: Result? = nil
     ) {
         self.capabilities = capabilities
         self.protocolVersion = protocolVersion

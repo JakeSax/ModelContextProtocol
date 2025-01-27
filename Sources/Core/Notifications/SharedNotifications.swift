@@ -75,18 +75,3 @@ public struct CancelledNotification: AnyClientNotification {
         self.params = params
     }
 }
-
-/// Represents a notification message in the MCP protocol
-public struct Notification: Codable, Sendable {
-    /// The notification method name
-    public let method: String
-    
-    /// Optional parameters for the notification
-    public let params: Parameters?
-    
-    public init(method: String, params: Parameters? = nil) {
-        self.method = method
-        self.params = params
-    }
-}
-

@@ -18,44 +18,44 @@ public enum JSONRPC {
 }
 
 /// Any Message that includes the JSON-RPC version being used.
-public protocol AnyJSONRPCMessage: Codable, Sendable {
+public protocol JSONRPCMessage: Codable, Sendable {
     /// The version of JSON-RPC being used, defaults to "2.0"
     var jsonrpc: String { get }
 }
 
-extension AnyJSONRPCMessage {
+extension JSONRPCMessage {
     public var jsonrpc: String { JSONRPC.jsonrpcVersion }
 }
 
 // MARK: JSON-RPC Message Types
-public enum JSONRPCMessage: Codable {
-    case request(JSONRPCRequest)
-    case notification(JSONRPCNotification)
-    case response(JSONRPCResponse)
-    case error(JSONRPCError)
-}
+//public enum JSONRPCMessage: Codable {
+//    case request(JSONRPCRequest)
+//    case notification(JSONRPCNotification)
+//    case response(JSONRPCResponse)
+//    case error(JSONRPCError)
+//}
 
 /// A request that expects a response.
-public struct JSONRPCRequest: AnyJSONRPCMessage, SupportsProgressToken {
-    public let id: RequestID
-    public let method: String
-    public let params: Parameters?
+public protocol JSONRPCRequest: JSONRPCMessage, SupportsProgressToken {
+    var id: RequestID { get }
+    var method: String { get }
+    var params: OldParameters? { get }
 }
 
 /// A notification which does not expect a response.
-public struct JSONRPCNotification: AnyJSONRPCMessage {
+public struct JSONRPCNotification: JSONRPCMessage {
     public let method: String
-    public let params: Parameters?
+    public let params: OldParameters?
 }
 
 /// A successful (non-error) response to a request.
-public struct JSONRPCResponse: AnyJSONRPCMessage {
-    public let id: RequestID
-    public let result: Result
+public protocol JSONRPCResponse: JSONRPCMessage {
+    var id: RequestID { get }
+    var result: Result { get }
 }
 
 /// A response to a request that indicates an error occurred.
-public struct JSONRPCError: AnyJSONRPCMessage {
+public struct JSONRPCError: JSONRPCMessage {
     public let id: RequestID
     public let error: ErrorDetails
     

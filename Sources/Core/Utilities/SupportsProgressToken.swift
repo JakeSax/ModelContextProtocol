@@ -7,7 +7,7 @@
 
 /// Indicates that this object may have a ``ProgressToken`` specified amongst its parameters.
 public protocol SupportsProgressToken {
-    var params: Parameters? { get }
+    var params: OldParameters? { get }
 }
 
 /// A progress token, used to associate progress notifications with the original request.

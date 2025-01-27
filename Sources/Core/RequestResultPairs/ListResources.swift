@@ -6,25 +6,14 @@
 //
 
 /// A request to retrieve available resources from the server.
-public struct ListResourcesRequest: Codable, Sendable {
+public struct ListResourcesRequest: PaginatableRequest {
     /// The API method identifier.
     public let method: ClientRequest.Method
     
     /// Optional parameters for the request.
-    public let params: Params?
+    public let params: PaginationParameters
     
-    /// Parameters for configuring the resources list request.
-    public struct Params: Codable, Sendable {
-        /// An opaque token representing the current pagination position.
-        /// If provided, the server will return results starting after this cursor.
-        public let cursor: String?
-        
-        public init(cursor: String? = nil) {
-            self.cursor = cursor
-        }
-    }
-    
-    public init(params: Params? = nil) {
+    public init(params: PaginationParameters = PaginationParameters()) {
         self.params = params
         self.method = .listResources
     }
@@ -41,7 +30,7 @@ public struct ListResourcesResult: Codable, Sendable {
     public let resources: [Resource]
     
     /// Reserved metadata field for additional response information.
-    public let meta: Parameters?
+    public let meta: OldParameters?
     
     public init(
         nextCursor: String? = nil,
@@ -62,9 +51,9 @@ public struct ResourceListChangedNotification: AnyServerNotification {
     /// The method identifier for this notification.
     public let method: ServerNotification.Method
     
-    public var params: Parameters?
+    public var params: OldParameters?
     
-    public init(params: Parameters? = nil) {
+    public init(params: OldParameters? = nil) {
         self.params = params
         self.method = Self.method
     }

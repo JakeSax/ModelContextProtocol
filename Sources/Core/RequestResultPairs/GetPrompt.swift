@@ -10,13 +10,19 @@ public struct GetPromptRequest: Codable, Sendable {
     public let method: ClientRequest.Method
     public let params: Parameters
     
-    public struct Parameters: Codable, Sendable {
+    public struct Parameters: RequestParameters {
         public let name: String
         public let arguments: [String: String]?
+        public let _meta: RequestMetadata?
         
-        public init(name: String, arguments: [String: String]? = nil) {
+        public init(
+            name: String,
+            arguments: [String: String]? = nil,
+            meta: RequestMetadata? = nil
+        ) {
             self.name = name
             self.arguments = arguments
+            self._meta = meta
         }
     }
     
@@ -31,7 +37,7 @@ public struct GetPromptResult: Codable, Sendable {
     /// An optional description for the prompt.
     public let messages: [PromptMessage]
     public let description: String?
-    public let meta: Parameters?
+    public let meta: OldParameters?
     
     public init(
         meta: [String: DynamicValue]? = nil,

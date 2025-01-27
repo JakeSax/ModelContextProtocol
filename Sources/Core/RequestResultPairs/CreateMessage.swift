@@ -9,17 +9,21 @@
 /// discretion over which model to select. The client should also inform the user
 /// before beginning sampling, to allow them to inspect the request (human in
 /// the loop) and decide whether to approve it.
-public struct CreateMessageRequest: Codable, Sendable {
+public struct CreateMessageRequest: Request {
     public static let method: ServerRequest.Method = .createMessage
+    
+    // MARK: Properties
     public let method: ServerRequest.Method
     public let params: MessageParameters
     
+    // MARK: Initialization
     init(params: MessageParameters) {
         self.method = .createMessage
         self.params = params
     }
     
-    public struct MessageParameters: Codable, Sendable {
+    // MARK: Data Structures
+    public struct MessageParameters: RequestParameters {
         /// Maximum tokens to sample. Client may sample fewer.
         public let maxTokens: Int
         
@@ -27,22 +31,24 @@ public struct CreateMessageRequest: Codable, Sendable {
         public let messages: [SamplingMessage]
         
         /// Request to include context from MCP servers
-        public var includeContext: ContextInclusion?
+        public let includeContext: ContextInclusion?
         
         /// Provider-specific metadata to pass through
-        public var metadata: Parameters?
+        public let metadata: OldParameters?
         
         /// Server's model preferences (client may ignore)
-        public var modelPreferences: ModelPreferences?
+        public let modelPreferences: ModelPreferences?
         
         /// Sequences that will stop sampling when encountered
-        public var stopSequences: [String]?
+        public let stopSequences: [String]?
         
         /// Optional system prompt (client may modify/omit)
-        public var systemPrompt: String?
+        public let systemPrompt: String?
         
         /// Temperature for sampling
-        public var temperature: Double?
+        public let temperature: Double?
+        
+        public let _meta: RequestMetadata?
     }
     
     /// Available context inclusion options for message creation
@@ -56,7 +62,7 @@ public struct CreateMessageRequest: Codable, Sendable {
 /// The client's response to a sampling/create_message request from the server.
 public struct CreateMessageResult: Codable, Sendable {
     /// Additional metadata attached to the response.
-    public let meta: Parameters?
+    public let meta: OldParameters?
     
     /// The content of the generated message.
     public let content: MessageContent

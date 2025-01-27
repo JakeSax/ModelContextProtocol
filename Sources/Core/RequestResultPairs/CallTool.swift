@@ -6,26 +6,37 @@
 //
 
 /// Used by the client to invoke a tool provided by the server.
-public struct CallToolRequest: Codable, Sendable {
+public struct CallToolRequest: Request {
+    
+    // MARK: Properties
     /// The method identifier for tool calls
     public let method: ClientRequest.Method
     
     /// Parameters for the tool call
     public let params: Parameters
     
-    public struct Parameters: Codable, Sendable {
+    // MARK: Data Structures
+    public struct Parameters: RequestParameters {
         /// Name of the tool to call
         public let name: String
         
         /// Arguments to pass to the tool
         public let arguments: [String: DynamicValue]?
         
-        public init(name: String, arguments: [String: DynamicValue]? = nil) {
+        public let _meta: RequestMetadata?
+        
+        public init(
+            name: String,
+            arguments: [String: DynamicValue]? = nil,
+            meta: RequestMetadata? = nil
+        ) {
             self.name = name
             self.arguments = arguments
+            self._meta = meta
         }
     }
     
+    // MARK: Initialization
     public init(params: Parameters) {
         self.params = params
         self.method = .callTool
@@ -44,7 +55,7 @@ public struct CallToolRequest: Codable, Sendable {
 /// should be reported as an MCP error response.
 public struct CallToolResult: Codable, Sendable {
     /// Additional metadata attached to the response
-    public let meta: Parameters?
+    public let meta: OldParameters?
     
     /// Content returned by the tool
     public let content: [MessageContent]
@@ -53,7 +64,7 @@ public struct CallToolResult: Codable, Sendable {
     public let isError: Bool?
     
     public init(
-        meta: Parameters? = nil,
+        meta: OldParameters? = nil,
         content: [MessageContent],
         isError: Bool? = nil
     ) {

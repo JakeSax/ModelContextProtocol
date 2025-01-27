@@ -30,6 +30,14 @@ public enum StringOrIntValue: Codable, Equatable, Sendable {
         self = .string(uuid.uuidString)
     }
     
+    public init?(_ dynamicValue: DynamicValue) {
+        switch dynamicValue {
+        case .string(let string): self = .string(string)
+        case .int(let int): self = .int(int)
+        default: return nil
+        }
+    }
+    
     // MARK: Codable Conformance
     public init(from decoder: Decoder) throws {
         let container = try decoder.singleValueContainer()

@@ -25,10 +25,10 @@ public struct Tool: Codable, Sendable {
     /// Defines expected parameters for a tool using JSON Schema
     public struct ToolInputSchema: Codable, Sendable {
         public let type: String
-        public let properties: Parameters
+        public let properties: OldParameters
         public let required: [String]?
         
-        public init(properties: Parameters, required: [String]? = nil) {
+        public init(properties: OldParameters, required: [String]? = nil) {
             self.type = "object"
             self.properties = properties
             self.required = required
@@ -41,9 +41,9 @@ public struct Tool: Codable, Sendable {
 public struct ToolListChangedNotification: AnyServerNotification {
     public static let method: ServerNotification.Method = .toolListChanged
     public let method: ServerNotification.Method
-    public let params: Parameters?
+    public let params: OldParameters?
     
-    public init(params: Parameters? = nil) {
+    public init(params: OldParameters? = nil) {
         self.method = .toolListChanged
         self.params = params
     }

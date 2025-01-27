@@ -6,24 +6,26 @@
 //
 
 /// A request from the client to the server, to ask for completion options.
-public struct CompleteRequest: Codable, Sendable {
+public struct CompleteRequest: Request {
     /// The method identifier for completion requests
     public let method: ClientRequest.Method
     
     /// The parameters for the completion request
-    public let params: Params
+    public let params: Parameters
     
-    init(params: Params) {
+    init(params: Parameters) {
         self.params = params
         self.method = .complete
     }
     
     /// Parameters for a completion request
-    public struct Params: Codable, Sendable {
+    public struct Parameters: RequestParameters {
         /// The argument's information
         public let argument: Argument
         /// Reference to either a prompt or resource
         public let ref: Reference
+        
+        public let _meta: RequestMetadata?
         
         /// Information about an argument
         public struct Argument: Codable, Sendable {

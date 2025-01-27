@@ -6,7 +6,7 @@
 //
 
 /// A request to read a specific resource URI.
-public struct ReadResourceRequest: Codable, Sendable {
+public struct ReadResourceRequest: Request {
     /// The method identifier for the request
     public let method: ClientRequest.Method
     
@@ -19,12 +19,15 @@ public struct ReadResourceRequest: Codable, Sendable {
     }
     
     /// Parameters for a resource read request
-    public struct ReadResourceParams: Codable, Sendable {
+    public struct ReadResourceParams: RequestParameters {
         /// The URI of the resource to read. The URI can use any protocol; it is up to the server how to interpret it.
         public let uri: String
         
-        public init(uri: String) {
+        public let _meta: RequestMetadata?
+        
+        public init(uri: String, meta: RequestMetadata? = nil) {
             self.uri = uri
+            self._meta = meta
         }
     }
 }
@@ -36,14 +39,14 @@ public struct ReadResourceResult: Codable, Sendable {
     public let contents: [ResourceContents]
     
     /// Additional metadata attached to the response
-    public let meta: Parameters?
+    public let meta: OldParameters?
     
     private enum CodingKeys: String, CodingKey {
         case meta = "meta"
         case contents
     }
     
-    public init(contents: [ResourceContents], meta: Parameters? = nil) {
+    public init(contents: [ResourceContents], meta: OldParameters? = nil) {
         self.meta = meta
         self.contents = contents
     }

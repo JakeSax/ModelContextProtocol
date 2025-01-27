@@ -9,39 +9,26 @@
 public typealias Cursor = String
 
 /// A paginated request implementation
-public struct PaginatedRequest: Codable, Sendable {
-    /// The request method name
-    public let method: String
-    /// Optional pagination parameters
-    public let params: PaginationParams?
+public protocol PaginatableRequest: Request where Parameters == PaginationParameters {}
+
+/// Parameters for paginated requests
+public struct PaginationParameters: RequestParameters {
+    /// An opaque token representing the current pagination position
+    public let cursor: Cursor?
     
-    public init(method: String, params: PaginationParams? = nil) {
-        self.method = method
-        self.params = params
-    }
+    public let _meta: RequestMetadata?
     
-    /// Parameters for paginated requests
-    public struct PaginationParams: Codable, Sendable {
-        /// An opaque token representing the current pagination position
-        public let cursor: Cursor?
-        
-        public init(cursor: Cursor? = nil) {
-            self.cursor = cursor
-        }
+    public init(cursor: Cursor? = nil, meta: RequestMetadata? = nil) {
+        self.cursor = cursor
+        self._meta = meta
     }
 }
 
-
 /// A paginated result implementation
-public struct PaginatedResult: Codable, Sendable {
+public protocol PaginatedResult: Codable, Sendable {
     /// Next page cursor token, if more results exist
-    public let nextCursor: Cursor?
+    var nextCursor: Cursor? { get }
     
     /// Optional metadata for the result
-    public var _meta: DynamicValue?
-    
-    public init(nextCursor: Cursor? = nil, meta: DynamicValue? = nil) {
-        self.nextCursor = nextCursor
-        self._meta = meta
-    }
+    var _meta: DynamicValue? { get }
 }

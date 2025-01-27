@@ -6,25 +6,14 @@
 //
 
 /// A request to retrieve available resource templates from the server.
-public struct ListResourceTemplatesRequest: Codable, Sendable {
+public struct ListResourceTemplatesRequest: PaginatableRequest {
     /// The API method identifier.
     public let method: ClientRequest.Method
     
     /// Optional parameters for the request.
-    public let params: Params?
+    public let params: PaginationParameters
     
-    /// Parameters for configuring the resource templates list request.
-    public struct Params: Codable, Sendable {
-        /// An opaque token representing the current pagination position.
-        /// If provided, the server will return results starting after this cursor.
-        public let cursor: String?
-        
-        public init(cursor: String? = nil) {
-            self.cursor = cursor
-        }
-    }
-    
-    public init(params: Params? = nil) {
+    public init(params: PaginationParameters = PaginationParameters()) {
         self.params = params
         self.method = .listResourceTemplates
     }
@@ -41,7 +30,7 @@ public struct ListResourceTemplatesResult: Codable, Sendable {
     public let resourceTemplates: [ResourceTemplate]
     
     /// Reserved metadata field for additional response information.
-    public let meta: Parameters?
+    public let meta: OldParameters?
     
     public init(
         nextCursor: String? = nil,

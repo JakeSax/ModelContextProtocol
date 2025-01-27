@@ -61,9 +61,9 @@ public enum ClientNotification: Codable, Sendable {
 public struct InitializedNotification: AnyClientNotification {
     public static let method: ClientNotification.Method = .initialized
     public let method: ClientNotification.Method
-    public let params: Parameters?
+    public let params: OldParameters?
     
-    public init(params: Parameters? = nil) {
+    public init(params: OldParameters? = nil) {
         self.method = Self.method
         self.params = params
     }

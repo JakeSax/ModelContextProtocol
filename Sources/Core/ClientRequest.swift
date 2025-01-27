@@ -6,7 +6,7 @@
 //
 
 /// A Request identified by a ``ClientRequest.Method`` in its `method` property.
-public protocol AnyClientRequest: MethodIdentified where MethodIdentifier == ClientRequest.Method {}
+public protocol AnyClientRequest: Request, MethodIdentified where MethodIdentifier == ClientRequest.Method {}
 
 /// An enumeration of all the possible client requests.
 public enum ClientRequest: Codable, Sendable {
@@ -119,14 +119,21 @@ public struct SubscribeRequest: AnyClientRequest {
     public let method: ClientRequest.Method
     public let params: SubscribeParameters
     
-    public struct SubscribeParameters: Codable, Sendable {
+    public struct SubscribeParameters: RequestParameters {
         /// URI of resource to subscribe to. Server determines interpretation.
         public let uri: String
+        
+        public let _meta: RequestMetadata?
+        
+        init(uri: String, meta: RequestMetadata? = nil) {
+            self.uri = uri
+            self._meta = meta
+        }
     }
     
     init(params: SubscribeParameters) {
+        self.method = Self.method
         self.params = params
-        self.method = .subscribe
     }
 }
 
@@ -135,19 +142,22 @@ public struct UnsubscribeRequest: AnyClientRequest {
     static public let method: ClientRequest.Method = .unsubscribe
     public let method: ClientRequest.Method
     
-    public struct Params: Codable, Sendable {
+    public struct Params: RequestParameters {
         /// URI of the resource to unsubscribe from
         public let uri: String
         
-        public init(uri: String) {
+        public let _meta: RequestMetadata?
+        
+        public init(uri: String, meta: RequestMetadata? = nil) {
             self.uri = uri
+            self._meta = meta
         }
     }
     
     public let params: Params
     
     public init(params: Params) {
-        self.method = .unsubscribe
+        self.method = Self.method
         self.params = params
     }
 }

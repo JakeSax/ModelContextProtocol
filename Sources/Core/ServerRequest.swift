@@ -6,7 +6,7 @@
 //
 
 /// A Request identified by a ``ServerRequest.Method`` in its `method` property.
-protocol AnyServerRequest: MethodIdentified where MethodIdentifier == ServerRequest.Method {}
+protocol AnyServerRequest: Request, MethodIdentified where MethodIdentifier == ServerRequest.Method {}
 
 /// An enumeration of all the possible server requests.
 public enum ServerRequest: Codable, Sendable {

@@ -6,25 +6,14 @@
 //
 
 /// A request to retrieve available prompts and prompt templates from the server.
-public struct ListPromptsRequest: Codable, Sendable {
+public struct ListPromptsRequest: PaginatableRequest {
     /// The API method identifier.
     public let method: ClientRequest.Method
     
     /// Optional parameters for the request.
-    public let params: Params?
+    public let params: PaginationParameters
     
-    /// Parameters for configuring the prompts list request.
-    public struct Params: Codable, Sendable {
-        /// An opaque token representing the current pagination position.
-        /// If provided, the server will return results starting after this cursor.
-        public let cursor: String?
-        
-        public init(cursor: String? = nil) {
-            self.cursor = cursor
-        }
-    }
-    
-    public init(params: Params? = nil) {
+    public init(params: PaginationParameters = PaginationParameters()) {
         self.params = params
         self.method = .listPrompts
     }
@@ -33,7 +22,7 @@ public struct ListPromptsRequest: Codable, Sendable {
 /// The server's response to a prompts/list request.
 public struct ListPromptsResult: Codable, Sendable {
     /// Reserved metadata field for additional response information.
-    public let meta: Parameters?
+    public let meta: OldParameters?
     
     /// Token representing the pagination position after the last result.
     /// If present, more results may be available.
@@ -42,7 +31,7 @@ public struct ListPromptsResult: Codable, Sendable {
     /// The list of returned prompts.
     public let prompts: [Prompt]
     
-    public init(meta: Parameters? = nil, nextCursor: String? = nil, prompts: [Prompt]) {
+    public init(meta: OldParameters? = nil, nextCursor: String? = nil, prompts: [Prompt]) {
         self.meta = meta
         self.nextCursor = nextCursor
         self.prompts = prompts
@@ -57,9 +46,9 @@ public struct PromptListChangedNotification: AnyServerNotification {
     public let method: ServerNotification.Method
     
     /// Additional parameters for the notification
-    public let params: Parameters
+    public let params: OldParameters
     
-    public init(params: Parameters = [:]) {
+    public init(params: OldParameters = [:]) {
         self.method = Self.method
         self.params = params
     }

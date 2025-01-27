@@ -6,23 +6,13 @@
 //
 
 /// A request to list available tools from the server
-public struct ListToolsRequest: Codable, Sendable {
+public struct ListToolsRequest: PaginatableRequest {
     /// The method identifier for the tools/list request
     public let method: ClientRequest.Method
     
-    public let params: Params
+    public let params: PaginationParameters
     
-    /// Parameters for pagination and filtering
-    public struct Params: Codable, Sendable {
-        /// Opaque token for pagination position
-        public let cursor: String?
-        
-        public init(cursor: String? = nil) {
-            self.cursor = cursor
-        }
-    }
-    
-    public init(params: Params = Params()) {
+    public init(params: PaginationParameters = PaginationParameters()) {
         self.params = params
         self.method = .listTools
     }
@@ -38,9 +28,9 @@ public struct ListToolsResult: Codable, Sendable {
     public let tools: [Tool]
     
     /// Additional metadata attached to the response
-    public let meta: Parameters?
+    public let meta: OldParameters?
     
-    public init(tools: [Tool], nextCursor: String? = nil, meta: Parameters? = nil) {
+    public init(tools: [Tool], nextCursor: String? = nil, meta: OldParameters? = nil) {
         self.tools = tools
         self.nextCursor = nextCursor
         self.meta = meta

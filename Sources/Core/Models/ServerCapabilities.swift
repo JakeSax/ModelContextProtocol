@@ -8,10 +8,10 @@
 /// Capabilities that a server may support.
 public struct ServerCapabilities: Codable, Sendable {
     /// Experimental, non-standard capabilities that the server supports.
-    public var experimental: [String: Parameters]?
+    public var experimental: [String: OldParameters]?
     
     /// Present if the server supports sending log messages to the client.
-    public var logging: Parameters?
+    public var logging: OldParameters?
     
     /// Present if the server offers any prompt templates.
     public var prompts: PromptCapabilities?
