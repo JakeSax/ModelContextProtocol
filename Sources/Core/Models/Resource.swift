@@ -6,7 +6,7 @@
 //
 
 /// A known resource that the server is capable of reading.
-public struct Resource: Codable, Sendable {
+public struct Resource: Codable, Sendable, Annotated {
     
     /// Additional metadata about the resource.
     public var annotations: Annotations?
@@ -80,7 +80,7 @@ public struct ResourceReference: Codable, Sendable {
 }
 
 /// A template description for resources available on the server.
-public struct ResourceTemplate: Codable, Sendable {
+public struct ResourceTemplate: Codable, Sendable, Annotated {
     /// Additional metadata about the resource template.
     public var annotations: Annotations?
     

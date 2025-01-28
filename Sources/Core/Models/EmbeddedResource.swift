@@ -11,7 +11,7 @@ import Foundation
 ///
 /// It is up to the client how best to render embedded resources for the benefit
 /// of the LLM and/or the user.
-public struct EmbeddedResource: Codable, Sendable {
+public struct EmbeddedResource: Codable, Sendable, Annotated {
     /// The resource content, which can be either text or blob data.
     public let resource: ResourceContent
     

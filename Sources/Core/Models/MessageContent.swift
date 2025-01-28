@@ -43,7 +43,7 @@ public enum MessageContent: Codable, Sendable {
 }
 
 /// Text provided to or from an LLM.
-public struct TextContent: AnyMessageContent {
+public struct TextContent: AnyMessageContent, Annotated {
     /// The text content of the message.
     public let text: String
     
@@ -61,7 +61,7 @@ public struct TextContent: AnyMessageContent {
 }
 
 /// An image provided to or from an LLM.
-public struct ImageContent: AnyMessageContent {
+public struct ImageContent: AnyMessageContent, Annotated {
     /// The base64-encoded image data.
     public let data: String
     
