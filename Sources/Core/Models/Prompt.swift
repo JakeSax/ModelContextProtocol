@@ -7,6 +7,8 @@
 
 /// A prompt or prompt template that the server offers.
 public struct Prompt: Codable, Sendable {
+    
+    // MARK: Properties
     /// The name of the prompt or prompt template.
     public let name: String
     
@@ -16,12 +18,14 @@ public struct Prompt: Codable, Sendable {
     /// A list of arguments to use for templating the prompt.
     public let arguments: [Argument]?
     
+    // MARK: Initialization
     public init(name: String, description: String? = nil, arguments: [Argument]? = nil) {
         self.name = name
         self.description = description
         self.arguments = arguments
     }
     
+    // MARK: Data Structures
     /// Describes an argument that a prompt can accept.
     public struct Argument: Codable, Sendable {
         /// The name of the argument.

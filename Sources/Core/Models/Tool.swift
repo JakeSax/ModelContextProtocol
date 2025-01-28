@@ -7,6 +7,8 @@
 
 /// Definition for a tool the client can call
 public struct Tool: Codable, Sendable {
+    
+    // MARK: Properties
     /// The name of the tool
     public let name: String
     
@@ -16,12 +18,14 @@ public struct Tool: Codable, Sendable {
     /// JSON Schema defining the expected parameters
     public let inputSchema: ToolInputSchema
     
+    // MARK: Initialization
     public init(name: String, description: String? = nil, inputSchema: ToolInputSchema) {
         self.name = name
         self.description = description
         self.inputSchema = inputSchema
     }
     
+    // MARK: Data Structures
     /// Defines expected parameters for a tool using JSON Schema
     public struct ToolInputSchema: Codable, Sendable {
         public let type: String
@@ -39,21 +43,3 @@ public struct Tool: Codable, Sendable {
 
 }
 
-/// Server notification indicating the tool list has changed
-public struct ToolListChangedNotification: AnyServerNotification {
-    public static let method: ServerNotification.Method = .toolListChanged
-    public let method: ServerNotification.Method
-    public let params: DefaultNotificationParameters
-    
-    public init(params: DefaultNotificationParameters = .init()) {
-        self.method = Self.method
-        self.params = params
-    }
-    
-    public init(from decoder: any Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        let method = try container.decode(MethodIdentifier.self, forKey: .method)
-        self.method = try Self.verify(method, decodedUsing: decoder)
-        self.params = try container.decode(Parameters.self, forKey: .params)
-    }
-}

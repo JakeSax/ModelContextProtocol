@@ -58,7 +58,6 @@ public enum ResourceContent: Codable, Sendable {
     }
 }
 
-
 /// Represents the contents of a text resource with its location and format
 public struct TextResourceContents: Codable, Sendable {
     /// The text content. Must only be set if item can be represented as text.

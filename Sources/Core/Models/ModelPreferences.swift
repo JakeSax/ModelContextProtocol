@@ -23,6 +23,18 @@ public struct ModelPreferences: Codable, Sendable {
     /// Optional ordered hints for model selection
     public let hints: [ModelHint]?
     
+    /// Creates model selection preferences with specified priorities and optional hints.
+    ///
+    /// - Parameters:
+    ///   - costPriority: A value between 0 and 1 indicating how much to prioritize cost optimization.
+    ///    A value of 0 means cost is not important, while 1 means cost is most important.
+    ///   - intelligencePriority: A value between 0 and 1 indicating how much to prioritize model intelligence
+    ///    and capabilities. A value of 0 means intelligence is not important, while 1 means it is most important.
+    ///   - speedPriority: A value between 0 and 1 indicating how much to prioritize sampling speed and latency.
+    ///    A value of 0 means speed is not important, while 1 means it is most important.
+    ///   - hints: Optional array of model selection hints to guide model choice. Defaults to nil.
+    ///
+    ///  - Precondition: All priority values must be between 0 and 1, inclusive.
     public init(
         costPriority: Double,
         intelligencePriority: Double,
@@ -49,6 +61,14 @@ public struct ModelPreferences: Codable, Sendable {
         /// - `claude` should match any Claude model
         public let name: String
         
+        /// Creates a model selection hint with the specified model name pattern.
+        ///
+        /// The name parameter is treated as a substring match pattern for model names.
+        /// For example:
+        /// - `claude-3-5-sonnet` should match `claude-3-5-sonnet-20241022`
+        /// - `sonnet` should match `claude-3-5-sonnet-20241022`, `claude-3-sonnet-20240229`, etc.
+        /// - `claude` should match any Claude model
+        /// - Parameter name: A string pattern to match against model names.
         public init(name: String) {
             self.name = name
         }

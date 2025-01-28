@@ -1,5 +1,5 @@
 //
-//  SharedRequests.swift
+//  PingRequest.swift
 //  ModelContextProtocol
 //
 //  Created by Jake Sax on 1/27/25.

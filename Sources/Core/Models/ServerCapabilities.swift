@@ -7,6 +7,8 @@
 
 /// Capabilities that a server may support.
 public struct ServerCapabilities: Codable, Sendable {
+    
+    // MARK: Properties
     /// Experimental, non-standard capabilities that the server supports.
     public var experimental: [String: DynamicValue]?
     
@@ -23,6 +25,7 @@ public struct ServerCapabilities: Codable, Sendable {
     public var tools: ToolCapabilities?
     
     
+    // MARK: Data Structures
     /// Capabilities related to prompts
     public struct PromptCapabilities: Codable, Sendable {
         /// Whether this server supports notifications for changes to the prompt list.

@@ -47,7 +47,7 @@ public struct TextContent: AnyMessageContent, Annotated {
     /// The text content of the message.
     public let text: String
     
-    /// The content type identifier.
+    /// The content type identifier, which will always be `text`.
     public let type: String
     
     /// Optional annotations for the content.
@@ -68,7 +68,7 @@ public struct ImageContent: AnyMessageContent, Annotated {
     /// The MIME type of the image.  Different providers may support different image types.
     public let mimeType: String
     
-    /// The content type identifier, which will always be `"image"`.
+    /// The content type identifier, which will always be `image`.
     public let type: String
     
     /// Optional annotations for the content.

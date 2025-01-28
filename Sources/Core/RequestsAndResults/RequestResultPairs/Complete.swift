@@ -56,7 +56,7 @@ public struct CompleteRequest: Request {
             let container = try decoder.container(keyedBy: CodingKeys.self)
             let type = try container.decode(ReferenceTypeIdentifier.self, forKey: .type)
             switch type {
-            case .prompt: self =  .prompt(try PromptReference(from: decoder))
+            case .prompt: self = .prompt(try PromptReference(from: decoder))
             case .resource: self = .resource(try ResourceReference(from: decoder))
             }
         }
@@ -64,10 +64,8 @@ public struct CompleteRequest: Request {
         public func encode(to encoder: any Encoder) throws {
             var container = encoder.singleValueContainer()
             switch self {
-            case .prompt(let promptReference):
-                try container.encode(promptReference)
-            case .resource(let resourceReference):
-                try container.encode(resourceReference)
+            case .prompt(let promptReference): try container.encode(promptReference)
+            case .resource(let resourceReference): try container.encode(resourceReference)
             }
         }
     }
@@ -79,11 +77,6 @@ public struct CompleteRequest: Request {
         self.method = try Self.verify(method, decodedUsing: decoder)
         self.params = try container.decode(Parameters.self, forKey: .params)
     }
-}
-
-public enum ReferenceTypeIdentifier: String, AnyMethodIdentifier {
-    case prompt = "ref/prompt"
-    case resource = "ref/resource"
 }
 
 /// The server's response to a completion/complete request
