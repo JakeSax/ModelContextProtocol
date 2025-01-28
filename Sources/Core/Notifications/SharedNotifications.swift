@@ -9,10 +9,21 @@
 /// long-running request. This notification may be sent or received by either server or
 /// client.
 public struct ProgressNotification: AnyClientNotification {
+    
+    // MARK: Static Properties
     public static let method = ClientNotification.Method.progress
+    
+    // MARK: Properties
     public let method: ClientNotification.Method
     public let params: Parameters
     
+    // MARK: Initialization
+    public init(params: Parameters) {
+        self.method = Self.method
+        self.params = params
+    }
+    
+    // MARK: Data Structures
     public struct Parameters: NotificationParameters {
         /// The progress thus far. This should increase every time progress is made,
         ///  even if the total is unknown.
@@ -37,11 +48,7 @@ public struct ProgressNotification: AnyClientNotification {
             self._meta = meta
         }
     }
-    
-    public init(params: Parameters) {
-        self.method = Self.method
-        self.params = params
-    }
+
 }
 
 /// This notification can be sent by either side (Client or Server) to indicate that it
@@ -56,10 +63,21 @@ public struct ProgressNotification: AnyClientNotification {
 ///
 /// A client MUST NOT attempt to cancel its `initialize` request.
 public struct CancelledNotification: AnyClientNotification {
+    
+    // MARK: Static Properties
     public static let method = ClientNotification.Method.cancelled
+    
+    // MARK: Properties
     public let method: ClientNotification.Method
     public let params: Parameters
     
+    // MARK: Initialization
+    public init(params: Parameters) {
+        self.method = Self.method
+        self.params = params
+    }
+    
+    // MARK: Data Structures
     public struct Parameters: NotificationParameters {
         /// The ID of the request to cancel.
         ///
@@ -82,9 +100,5 @@ public struct CancelledNotification: AnyClientNotification {
             self._meta = meta
         }
     }
-    
-    public init(params: Parameters) {
-        self.method = Self.method
-        self.params = params
-    }
+
 }

@@ -122,12 +122,23 @@ public struct ResourceTemplate: Codable, Sendable {
 /// and may need to be read again. This should only be sent if the client previously sent
 /// a resources/subscribe request.
 public struct ResourceUpdatedNotification: AnyServerNotification {
+    
+    // MARK: Static Properties
     public static let method: ServerNotification.Method = .resourceUpdated
+    
+    // MARK: Properties
     /// The method identifier for this notification.
     public let method: ServerNotification.Method
     
     public var params: Parameters
     
+    // MARK: Initialization
+    public init(params: Parameters) {
+        self.method = Self.method
+        self.params = params
+    }
+    
+    // MARK: Data Structures
     /// Parameters for the resource update notification.
     public struct Parameters: NotificationParameters {
         /// The URI of the resource that has been updated.
@@ -141,9 +152,5 @@ public struct ResourceUpdatedNotification: AnyServerNotification {
             self._meta = meta
         }
     }
-    
-    public init(params: Parameters) {
-        self.method = Self.method
-        self.params = params
-    }
+
 }

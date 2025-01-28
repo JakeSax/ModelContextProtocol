@@ -6,8 +6,7 @@
 //
 
 /// A Notification identified by a ``ServerNotification.Method`` in its `method` property.
-public protocol AnyServerNotification: Notification where MethodIdentifier == ServerNotification.Method {
-}
+public protocol AnyServerNotification: Notification where MethodIdentifier == ServerNotification.Method {}
 
 /// An enumeration of all the possible server notifications.
 public enum ServerNotification: Codable, Sendable {
@@ -82,13 +81,23 @@ public enum ServerNotification: Codable, Sendable {
 
 /// A notification containing a log message from server to client
 public struct LoggingMessageNotification: AnyServerNotification {
+    
+    // MARK: Static Properties
     public static let method: ServerNotification.Method = .loggingMessage
     
+    // MARK: Properties
     /// The method identifier for logging notifications
     public let method: ServerNotification.Method
     
     public let params: Parameters
     
+    // MARK: Initialization
+    public init(params: Parameters) {
+        self.method = Self.method
+        self.params = params
+    }
+    
+    // MARK: Data Structures
     /// Parameters containing the log message details
     public struct Parameters: NotificationParameters {
         /// The log message content
@@ -115,9 +124,4 @@ public struct LoggingMessageNotification: AnyServerNotification {
         }
     }
     
-    
-    public init(params: Parameters) {
-        self.method = Self.method
-        self.params = params
-    }
 }
