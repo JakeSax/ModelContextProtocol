@@ -6,7 +6,7 @@
 //
 
 /// A request to retrieve available resource templates from the server.
-public struct ListResourceTemplatesRequest: PaginatableRequest {
+public struct ListResourceTemplatesRequest: PaginatedRequest {
     /// The API method identifier.
     public let method: ClientRequest.Method
     
@@ -20,19 +20,19 @@ public struct ListResourceTemplatesRequest: PaginatableRequest {
 }
 
 /// The server's response to a resources/templates/list request.
-public struct ListResourceTemplatesResult: Result {
-    
-    /// Token representing the pagination position after the last result.
-    /// If present, more results may be available.
-    public let nextCursor: String?
+public struct ListResourceTemplatesResult: PaginatedResult {
     
     /// The list of returned resource templates.
     public let resourceTemplates: [ResourceTemplate]
     
+    /// Token representing the pagination position after the last result.
+    /// If present, more results may be available.
+    public let nextCursor: Cursor?
+    
     public let _meta: ResultMetadata?
     
     public init(
-        nextCursor: String? = nil,
+        nextCursor: Cursor? = nil,
         resourceTemplates: [ResourceTemplate],
         meta: ResultMetadata? = nil
     ) {

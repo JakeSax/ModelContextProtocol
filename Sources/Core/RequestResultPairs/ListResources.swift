@@ -6,7 +6,7 @@
 //
 
 /// A request to retrieve available resources from the server.
-public struct ListResourcesRequest: PaginatableRequest {
+public struct ListResourcesRequest: PaginatedRequest {
     /// The API method identifier.
     public let method: ClientRequest.Method
     
@@ -20,11 +20,10 @@ public struct ListResourcesRequest: PaginatableRequest {
 }
 
 /// The server's response to a resources/list request.
-public struct ListResourcesResult: Result {
-#warning("add paginated result")
+public struct ListResourcesResult: PaginatedResult {
     /// Token representing the pagination position after the last result.
     /// If present, more results may be available.
-    public let nextCursor: String?
+    public let nextCursor: Cursor?
     
     /// The list of returned resources.
     public let resources: [Resource]
@@ -32,7 +31,7 @@ public struct ListResourcesResult: Result {
     public let _meta: ResultMetadata?
     
     public init(
-        nextCursor: String? = nil,
+        nextCursor: Cursor? = nil,
         resources: [Resource],
         meta: [String: DynamicValue]? = nil
     ) {

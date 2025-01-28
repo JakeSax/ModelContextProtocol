@@ -6,7 +6,7 @@
 //
 
 /// A request to retrieve available prompts and prompt templates from the server.
-public struct ListPromptsRequest: PaginatableRequest {
+public struct ListPromptsRequest: PaginatedRequest {
     /// The API method identifier.
     public let method: ClientRequest.Method
     
@@ -14,24 +14,28 @@ public struct ListPromptsRequest: PaginatableRequest {
     public let params: PaginationParameters
     
     public init(params: PaginationParameters = PaginationParameters()) {
-        self.params = params
         self.method = .listPrompts
+        self.params = params
     }
 }
 
 /// The server's response to a prompts/list request.
-public struct ListPromptsResult: Result {
-    
-    /// Token representing the pagination position after the last result.
-    /// If present, more results may be available.
-    public let nextCursor: String?
+public struct ListPromptsResult: PaginatedResult {
     
     /// The list of returned prompts.
     public let prompts: [Prompt]
     
+    /// Token representing the pagination position after the last result.
+    /// If present, more results may be available.
+    public let nextCursor: Cursor?
+    
     public let _meta: ResultMetadata?
     
-    public init(nextCursor: String? = nil, prompts: [Prompt], meta: ResultMetadata? = nil) {
+    public init(
+        nextCursor: Cursor? = nil,
+        prompts: [Prompt],
+        meta: ResultMetadata? = nil
+    ) {
         self.nextCursor = nextCursor
         self.prompts = prompts
         self._meta = meta

@@ -6,7 +6,7 @@
 //
 
 /// A request to list available tools from the server
-public struct ListToolsRequest: PaginatableRequest {
+public struct ListToolsRequest: PaginatedRequest {
     /// The method identifier for the tools/list request
     public let method: ClientRequest.Method
     
@@ -19,17 +19,21 @@ public struct ListToolsRequest: PaginatableRequest {
 }
 
 /// The response containing available tools from the server
-public struct ListToolsResult: Result {
-    
-    /// Token for accessing the next page of results
-    public let nextCursor: String?
+public struct ListToolsResult: PaginatedResult {
     
     /// Array of available tools
     public let tools: [Tool]
     
+    /// Token for accessing the next page of results
+    public let nextCursor: Cursor?
+    
     public let _meta: ResultMetadata?
     
-    public init(tools: [Tool], nextCursor: String? = nil, meta: ResultMetadata? = nil) {
+    public init(
+        tools: [Tool],
+        nextCursor: Cursor? = nil,
+        meta: ResultMetadata? = nil
+    ) {
         self.tools = tools
         self.nextCursor = nextCursor
         self._meta = meta

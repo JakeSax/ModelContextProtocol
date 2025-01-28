@@ -8,12 +8,12 @@
 /// Cursor type for pagination
 public typealias Cursor = String
 
-/// A paginated request implementation
-public protocol PaginatableRequest: Request where Parameters == PaginationParameters {}
+/// A ``Request`` that may use pagination, using a String as a cursor.
+public protocol PaginatedRequest: Request where Parameters == PaginationParameters {}
 
 /// Parameters for paginated requests
 public struct PaginationParameters: RequestParameters {
-    /// An opaque token representing the current pagination position
+    /// An opaque token representing the current pagination position.
     public let cursor: Cursor?
     
     public let _meta: RequestMetadata?
@@ -24,11 +24,8 @@ public struct PaginationParameters: RequestParameters {
     }
 }
 
-/// A paginated result implementation
-public protocol PaginatedResult: Codable, Sendable {
+/// A ``Result`` that may use pagination, using a String as a cursor.
+public protocol PaginatedResult: Result {
     /// Next page cursor token, if more results exist
     var nextCursor: Cursor? { get }
-    
-    /// Optional metadata for the result
-    var _meta: DynamicValue? { get }
 }
