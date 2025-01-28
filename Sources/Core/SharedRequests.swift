@@ -7,7 +7,7 @@
 
 /// A ping, issued by either the server or the client, to check that the other party is still alive.
 /// The receiver must promptly respond, or else may be disconnected.
-public struct PingRequest: AnyServerRequest, Request {
+public struct PingRequest: AnyServerRequest {
     
     public static let method: ServerRequest.Method = .ping
     
@@ -25,15 +25,7 @@ public struct PingRequest: AnyServerRequest, Request {
     public init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         let method = try container.decode(MethodIdentifier.self, forKey: .method)
-        guard method == Self.method else {
-            throw DecodingError.dataCorrupted(
-                DecodingError.Context(
-                    codingPath: decoder.codingPath,
-                    debugDescription: "Provided method: \(method) does not match expected method: \(Self.method)"
-                )
-            )
-        }
-        self.method = method
+        self.method = try Self.verify(method, decodedUsing: decoder)
         self.params = try container.decodeIfPresent(
             DefaultRequestParameters.self,
             forKey: .params

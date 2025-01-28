@@ -115,11 +115,22 @@ public enum ClientRequest: Codable, Sendable {
 
 /// Request to subscribe to resource updates
 public struct SubscribeRequest: AnyClientRequest {
-    static public let method: ClientRequest.Method = .subscribe
-    public let method: ClientRequest.Method
-    public let params: SubscribeParameters
     
-    public struct SubscribeParameters: RequestParameters {
+    // MARK: Static Properties
+    static public let method: ClientRequest.Method = .subscribe
+    
+    // MARK: Properties
+    public let method: ClientRequest.Method
+    public let params: Parameters
+    
+    // MARK: Initialization
+    public init(params: Parameters) {
+        self.method = Self.method
+        self.params = params
+    }
+    
+    // MARK: Data Structures
+    public struct Parameters: RequestParameters {
         /// URI of resource to subscribe to. Server determines interpretation.
         public let uri: String
         
@@ -131,18 +142,34 @@ public struct SubscribeRequest: AnyClientRequest {
         }
     }
     
-    init(params: SubscribeParameters) {
-        self.method = Self.method
-        self.params = params
+    // MARK: Codable Conformance
+    public init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        let method = try container.decode(MethodIdentifier.self, forKey: .method)
+        self.method = try Self.verify(method, decodedUsing: decoder)
+        self.params = try container.decode(Parameters.self, forKey: .params)
     }
 }
 
 /// Client request to unsubscribe from resource updates
 public struct UnsubscribeRequest: AnyClientRequest {
+    
+    // MARK: Static Properties
     static public let method: ClientRequest.Method = .unsubscribe
+    
+    // MARK: Properties
     public let method: ClientRequest.Method
     
-    public struct Params: RequestParameters {
+    public let params: Parameters
+    
+    // MARK: Initialization
+    public init(params: Parameters) {
+        self.method = Self.method
+        self.params = params
+    }
+    
+    // MARK: Data Structures
+    public struct Parameters: RequestParameters {
         /// URI of the resource to unsubscribe from
         public let uri: String
         
@@ -154,11 +181,13 @@ public struct UnsubscribeRequest: AnyClientRequest {
         }
     }
     
-    public let params: Params
-    
-    public init(params: Params) {
-        self.method = Self.method
-        self.params = params
+    // MARK: Codable Conformance
+    public init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        let method = try container.decode(MethodIdentifier.self, forKey: .method)
+        self.method = try Self.verify(method, decodedUsing: decoder)
+        self.params = try container.decode(Parameters.self, forKey: .params)
     }
 }
+
 

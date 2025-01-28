@@ -11,7 +11,7 @@ public struct ReadResourceRequest: Request {
     public static let method: ClientRequest.Method = .readResource
     
     /// The method identifier for the request
-    public let method: ClientRequest.Method
+    public let method: MethodIdentifier
     
     /// The parameters for the request
     public let params: ReadResourceParams
@@ -32,6 +32,13 @@ public struct ReadResourceRequest: Request {
             self.uri = uri
             self._meta = meta
         }
+    }
+    
+    public init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        let method = try container.decode(MethodIdentifier.self, forKey: .method)
+        self.method = try Self.verify(method, decodedUsing: decoder)
+        self.params = try container.decode(Parameters.self, forKey: .params)
     }
 }
 

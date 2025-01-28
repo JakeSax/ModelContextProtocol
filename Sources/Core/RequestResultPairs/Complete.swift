@@ -8,19 +8,24 @@
 /// A request from the client to the server, to ask for completion options.
 public struct CompleteRequest: Request {
     
+    // MARK: Static Properties
     public static let method: ClientRequest.Method = .complete
     
+    // MARK: Properties
     /// The method identifier for completion requests
     public let method: ClientRequest.Method
     
     /// The parameters for the completion request
     public let params: Parameters
     
+    
+    // MARK: Initialization
     init(params: Parameters) {
         self.method = Self.method
         self.params = params
     }
     
+    // MARK: Data Structures
     /// Parameters for a completion request
     public struct Parameters: RequestParameters {
         /// The argument's information
@@ -66,6 +71,14 @@ public struct CompleteRequest: Request {
             }
         }
     }
+    
+    // MARK: Codable Conformance
+    public init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        let method = try container.decode(MethodIdentifier.self, forKey: .method)
+        self.method = try Self.verify(method, decodedUsing: decoder)
+        self.params = try container.decode(Parameters.self, forKey: .params)
+    }
 }
 
 public enum ReferenceTypeIdentifier: String, AnyMethodIdentifier {
@@ -74,7 +87,7 @@ public enum ReferenceTypeIdentifier: String, AnyMethodIdentifier {
 }
 
 /// The server's response to a completion/complete request
-public struct CompleteResult: Codable, Sendable {
+public struct CompleteResult: Result {
     /// The completion results
     public let completion: Completion
     

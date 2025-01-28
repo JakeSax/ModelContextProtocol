@@ -152,5 +152,13 @@ public struct ResourceUpdatedNotification: AnyServerNotification {
             self._meta = meta
         }
     }
+    
+    // MARK: Codable Conformance
+    public init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        let method = try container.decode(MethodIdentifier.self, forKey: .method)
+        self.method = try Self.verify(method, decodedUsing: decoder)
+        self.params = try container.decode(Parameters.self, forKey: .params)
+    }
 
 }

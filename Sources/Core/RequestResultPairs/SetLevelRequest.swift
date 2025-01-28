@@ -8,11 +8,20 @@
 /// Request to enable or adjust logging
 public struct SetLevelRequest: Request {
     
+    // MARK: Static Properties
     public static let method: ClientRequest.Method = .setLevel
     
+    // MARK: Properties
     public let method: ClientRequest.Method
     public let params: LoggingParameters
     
+    // MARK: Initialization
+    init(params: LoggingParameters) {
+        self.method = Self.method
+        self.params = params
+    }
+    
+    // MARK: Data Structures
     public struct LoggingParameters: RequestParameters {
         /// Level of logging client wants to receive. Server sends logs at this level and higher.
         public let level: LoggingLevel
@@ -25,8 +34,11 @@ public struct SetLevelRequest: Request {
         }
     }
     
-    init(params: LoggingParameters) {
-        self.method = Self.method
-        self.params = params
+    // MARK: Codable Conformance
+    public init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        let method = try container.decode(MethodIdentifier.self, forKey: .method)
+        self.method = try Self.verify(method, decodedUsing: decoder)
+        self.params = try container.decode(Parameters.self, forKey: .params)
     }
 }
