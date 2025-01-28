@@ -6,7 +6,7 @@
 //
 
 /// Represents a root directory or file that the server can operate on.
-public struct Root: Codable, Sendable {
+public struct Root: Codable, Sendable, Equatable {
     /// An optional name for the root. This can be used to provide a human-readable
     /// identifier for the root, which may be useful for display purposes or for
     /// referencing the root in other parts of the application.

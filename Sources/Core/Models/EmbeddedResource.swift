@@ -11,7 +11,7 @@ import Foundation
 ///
 /// It is up to the client how best to render embedded resources for the benefit
 /// of the LLM and/or the user.
-public struct EmbeddedResource: Codable, Sendable, Annotated {
+public struct EmbeddedResource: Codable, Sendable, Annotated, Equatable {
     /// The resource content, which can be either text or blob data.
     public let resource: ResourceContent
     
@@ -29,7 +29,7 @@ public struct EmbeddedResource: Codable, Sendable, Annotated {
 }
 
 /// Represents the content type of an embedded resource.
-public enum ResourceContent: Codable, Sendable {
+public enum ResourceContent: Codable, Sendable, Equatable {
     case text(TextResourceContents)
     case blob(BlobResourceContents)
     
@@ -57,7 +57,7 @@ public enum ResourceContent: Codable, Sendable {
 }
 
 /// The contents of a specific resource or sub-resource.
-protocol ResourceContents: Codable, Sendable {
+protocol ResourceContents: Codable, Sendable, Equatable {
     /// The MIME type of this resource, if known.
     var mimeType: String? { get }
     
@@ -66,7 +66,7 @@ protocol ResourceContents: Codable, Sendable {
 }
 
 /// Represents the contents of a text resource with its location and format
-public struct TextResourceContents: ResourceContents {
+public struct TextResourceContents: ResourceContents, Equatable {
     /// The text content. Must only be set if item can be represented as text.
     public let text: String
     
@@ -84,7 +84,7 @@ public struct TextResourceContents: ResourceContents {
 }
 
 /// Represents a binary resource with its metadata
-public struct BlobResourceContents: ResourceContents {
+public struct BlobResourceContents: ResourceContents, Equatable {
     /// Base64-encoded string representing the binary data
     public let blob: Data
     

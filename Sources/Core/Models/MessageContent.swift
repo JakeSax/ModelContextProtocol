@@ -13,7 +13,7 @@ private protocol AnyMessageContent: Codable, Sendable {
 }
 
 /// Represents the content type of a message.
-public enum MessageContent: Codable, Sendable {
+public enum MessageContent: Codable, Sendable, Equatable {
     case text(TextContent)
     case image(ImageContent)
     
@@ -43,7 +43,7 @@ public enum MessageContent: Codable, Sendable {
 }
 
 /// Text provided to or from an LLM.
-public struct TextContent: AnyMessageContent, Annotated {
+public struct TextContent: AnyMessageContent, Annotated, Equatable {
     /// The text content of the message.
     public let text: String
     
@@ -61,7 +61,7 @@ public struct TextContent: AnyMessageContent, Annotated {
 }
 
 /// An image provided to or from an LLM.
-public struct ImageContent: AnyMessageContent, Annotated {
+public struct ImageContent: AnyMessageContent, Annotated, Equatable {
     /// The base64-encoded image data.
     public let data: String
     

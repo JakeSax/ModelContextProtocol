@@ -6,7 +6,7 @@
 //
 
 /// Describes the name and version of an MCP implementation.
-public struct Implementation: Codable, Sendable {
+public struct Implementation: Codable, Sendable, Equatable {
     public let name: String
     public let version: String
     

@@ -6,7 +6,7 @@
 //
 
 /// A known resource that the server is capable of reading.
-public struct Resource: Codable, Sendable, Annotated {
+public struct Resource: Codable, Sendable, Annotated, Equatable {
     
     /// A description of what this resource represents.
     ///
@@ -51,7 +51,7 @@ public struct Resource: Codable, Sendable, Annotated {
 }
 
 /// A reference to a resource or resource template definition.
-public struct ResourceReference: Codable, Sendable {
+public struct ResourceReference: Codable, Sendable, Equatable {
     /// The type identifier for resource references.
     public let type: ReferenceTypeIdentifier
     
@@ -65,7 +65,7 @@ public struct ResourceReference: Codable, Sendable {
 }
 
 /// A template description for resources available on the server.
-public struct ResourceTemplate: Codable, Sendable, Annotated {
+public struct ResourceTemplate: Codable, Sendable, Annotated, Equatable {
     
     /// A description of what this template is for.
     ///

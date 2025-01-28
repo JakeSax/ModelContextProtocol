@@ -6,17 +6,20 @@
 //
 
 /// Base request type for MCP protocol.
-public protocol Request<MethodIdentifier>: MethodIdentified {
+public protocol Request<MethodIdentifier>: MethodIdentified, Equatable {
     
     /// The parameters that may be included in this request.
     associatedtype Parameters: RequestParameters
     
     /// The parameters for the request.
     var params: Parameters { get }
+    
+    /// Creates a Request with the given parameters.
+    init(params: Parameters)
 }
 
 /// The parameters that may be inclued in a ``Request``.
-public protocol RequestParameters: Codable, Sendable {
+public protocol RequestParameters: Codable, Sendable, Equatable {
     /// This parameter name is reserved by MCP to allow clients and servers to attach
     /// additional metadata to their messages.
     var _meta: RequestMetadata? { get }
@@ -34,7 +37,7 @@ extension RequestParameters {
 
 /// The metadata expected for a ``Request``, which only optionally includes
 /// a ``ProgressToken``.
-public struct RequestMetadata: Codable, Sendable {
+public struct RequestMetadata: Codable, Sendable, Equatable {
     /// If specified, the caller is requesting out-of-band progress notifications for this
     /// request (as represented by `notifications/progress`). The value of this
     /// parameter is an opaque token that will be attached to any subsequent notifications.
@@ -71,13 +74,17 @@ public struct DefaultRequestParameters: RequestParameters {
             // Use a dictionary container to capture all fields
             let container = try decoder.singleValueContainer()
             let allProperties = try container.decode([String: DynamicValue].self)
+            let nonMetadataProperties = allProperties.filter { $0.key != Self.metadataKey }
             
             // Store all non-meta properties
-            self.additionalProperties = allProperties.filter { $0.key != Self.metadataKey }
+            if nonMetadataProperties.isEmpty {
+                self.additionalProperties = nil
+            } else {
+                self.additionalProperties = nonMetadataProperties
+            }
             
             // Extract _meta if it exists
-            guard let metaValue = allProperties[Self.metadataKey],
-                  case .dictionary(let metaDict) = metaValue else {
+            guard let metaDict = allProperties[Self.metadataKey]?.dictionaryValue else {
                 self._meta = nil
                 return
             }
@@ -86,7 +93,7 @@ public struct DefaultRequestParameters: RequestParameters {
                 return
             }
             
-            self._meta = .init(progressToken: ProgressToken(progressTokenValue) )
+            self._meta = .init(progressToken: ProgressToken(progressTokenValue))
         } catch {
             self._meta = nil
             self.additionalProperties = nil

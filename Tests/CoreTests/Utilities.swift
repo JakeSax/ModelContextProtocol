@@ -74,4 +74,4 @@ func validateCoding<T: Codable>(
     
     // Compare the results
     #expect(encodedJSON == expectedJSON)
-    }
+}

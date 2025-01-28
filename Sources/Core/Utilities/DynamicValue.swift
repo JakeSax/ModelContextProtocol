@@ -5,8 +5,10 @@
 //  Created by Jake Sax on 1/25/25.
 //
 
+import Foundation
+
 /// A flexible data structure for handling various JSON-compatible values within MCP.
-public enum DynamicValue: Codable, Sendable {
+public enum DynamicValue: Codable, Sendable, Equatable {
     
     // MARK: Cases
     case string(String)
@@ -81,6 +83,7 @@ public enum DynamicValue: Codable, Sendable {
     }
 }
 
+// MARK: More Convenience Initializers
 extension DynamicValue: ExpressibleByStringLiteral {
     public init(stringLiteral value: StringLiteralType) {
         self = .string(value)
@@ -123,3 +126,169 @@ extension DynamicValue: ExpressibleByNilLiteral {
         self = .null
     }
 }
+
+// MARK: Serialization Extensions
+extension DynamicValue {
+    /// Converts this DynamicValue to another Codable type through JSON encoding/decoding.
+    ///
+    /// Use this method to safely convert a DynamicValue instance to any type that conforms
+    /// to Decodable:
+    /// ```swift
+    /// let params = try dynamicValue.to(ResourceParams.self)
+    /// ```
+    ///
+    /// - Parameter type: The type to convert this value to.
+    /// - Returns: The converted value of the specified type.
+    /// - Throws: DecodingError if the conversion fails or the data is invalid for the target type.
+    public func to<T: Decodable>(_ type: T.Type) throws -> T {
+        let data = try JSONEncoder().encode(self)
+        return try JSONDecoder().decode(type, from: data)
+    }
+    
+    /// Creates a DynamicValue from any Encodable type through JSON encoding/decoding.
+    ///
+    /// Use this method to convert any Encodable type into a DynamicValue:
+    /// ```swift
+    /// let dynamic = try DynamicValue.from(params)
+    /// ```
+    ///
+    /// - Parameter value: The value to convert to DynamicValue.
+    /// - Returns: A new DynamicValue representing the input.
+    /// - Throws: EncodingError if the value cannot be encoded to JSON.
+    public static func from<T: Encodable>(_ value: T) throws -> DynamicValue {
+        let data = try JSONEncoder().encode(value)
+        return try JSONDecoder().decode(DynamicValue.self, from: data)
+    }
+}
+
+extension [String: DynamicValue] {
+    /// Converts this dictionary to another Codable type through JSON encoding/decoding.
+    ///
+    /// Use this method to convert a dictionary of DynamicValues to any type that conforms
+    /// to Decodable:
+    /// ```swift
+    /// let params = try dynamicDict.to(ResourceParams.self)
+    /// ```
+    ///
+    /// - Parameter type: The type to convert this dictionary to.
+    /// - Returns: The converted value of the specified type.
+    /// - Throws: DecodingError if the conversion fails or the data is invalid for the target type.
+    public func to<T: Decodable>(_ type: T.Type) throws -> T {
+        let data = try JSONEncoder().encode(self)
+        return try JSONDecoder().decode(type, from: data)
+    }
+    
+    /// Creates a dictionary of DynamicValues from any Encodable type through JSON encoding/decoding.
+    ///
+    /// Use this method to convert any Encodable type into a dictionary of DynamicValues:
+    /// ```swift
+    /// let dict = try [String: DynamicValue].from(params)
+    /// ```
+    ///
+    /// - Parameter value: The value to convert to a dictionary.
+    /// - Returns: A new dictionary containing DynamicValues representing the input.
+    /// - Throws: EncodingError if the value cannot be encoded to JSON.
+    public static func from<T: Encodable>(_ value: T) throws -> [String: DynamicValue] {
+        let data = try JSONEncoder().encode(value)
+        return try JSONDecoder().decode([String: DynamicValue].self, from: data)
+    }
+}
+
+public extension Encodable {
+    /// Converts this value to a DynamicValue representation.
+    ///
+    /// Use this method to easily convert any Encodable type to a DynamicValue:
+    /// ```swift
+    /// let dynamicValue = try params.toDynamicValue()
+    /// ```
+    ///
+    /// - Returns: A DynamicValue representing this value.
+    /// - Throws: EncodingError if the conversion fails.
+    func toDynamicValue() throws -> DynamicValue {
+        try DynamicValue.from(self)
+    }
+    
+    /// Converts this value to a dictionary of DynamicValues.
+    ///
+    /// Use this method to easily convert any Encodable type to a dictionary:
+    /// ```swift
+    /// let dict = try params.toDynamicDictionary()
+    /// ```
+    ///
+    /// - Returns: A dictionary containing DynamicValues representing this value.
+    /// - Throws: EncodingError if the conversion fails.
+    func toDynamicDictionary() throws -> [String: DynamicValue] {
+        try [String: DynamicValue].from(self)
+    }
+    
+    /// Converts this value to an optional dictionary of DynamicValues.
+    ///
+    /// Use this method to easily convert any Encodable type to a dictionary:
+    /// ```swift
+    /// let dict = try params.toOptionalDynamicDictionary()
+    /// ```
+    ///
+    /// - Returns: An optional dictionary containing DynamicValues representing this value.
+    /// - Throws: EncodingError if the conversion fails.
+    func toOptionalDynamicDictionary() throws -> [String: DynamicValue]? {
+        let data = try JSONEncoder().encode(self)
+        return try JSONDecoder().decode([String: DynamicValue]?.self, from: data)
+    }
+}
+
+// MARK: Value Accessors
+extension DynamicValue {
+    
+    /// The string value if this is a `.string`, otherwise nil.
+    public var stringValue: String? {
+        guard case .string(let value) = self else {
+            return nil
+        }
+        return value
+    }
+    
+    /// The integer value if this is an `.int`, otherwise nil.
+    public var intValue: Int? {
+        guard case .int(let value) = self else {
+            return nil
+        }
+        return value
+    }
+    
+    /// The double value if this is a `.double`, otherwise nil.
+    public var doubleValue: Double? {
+        if case .double(let value) = self {
+            return value
+        }
+        // Also try converting int to double for convenience
+        if case .int(let value) = self {
+            return Double(value)
+        }
+        return nil
+    }
+    
+    /// The boolean value if this is a `.bool`, otherwise nil.
+    public var boolValue: Bool? {
+        guard case .bool(let value) = self else {
+            return nil
+        }
+        return value
+    }
+    
+    /// The array value if this is an `.array`, otherwise nil.
+    public var arrayValue: [DynamicValue]? {
+        guard case .array(let value) = self else {
+            return nil
+        }
+        return value
+    }
+    
+    /// The dictionary value if this is a `.dictionary`, otherwise nil.
+    public var dictionaryValue: [String: DynamicValue]? {
+        guard case .dictionary(let value) = self else {
+            return nil
+        }
+        return value
+    }
+}
+            

@@ -9,7 +9,7 @@
 ///
 /// This is similar to `SamplingMessage`, but also supports the embedding of
 /// resources from the MCP server.
-public struct PromptMessage: Codable, Sendable {
+public struct PromptMessage: Codable, Sendable, Equatable {
     
     /// The role associated with this message
     public let role: Role

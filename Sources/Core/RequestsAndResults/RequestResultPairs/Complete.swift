@@ -20,7 +20,7 @@ public struct CompleteRequest: Request {
     
     
     // MARK: Initialization
-    init(params: Parameters) {
+    public init(params: Parameters) {
         self.method = Self.method
         self.params = params
     }
@@ -36,7 +36,7 @@ public struct CompleteRequest: Request {
         public let _meta: RequestMetadata?
         
         /// Information about an argument
-        public struct Argument: Codable, Sendable {
+        public struct Argument: Codable, Sendable, Equatable {
             /// The name of the argument
             public let name: String
             /// The value of the argument to use for completion matching
@@ -50,7 +50,7 @@ public struct CompleteRequest: Request {
         }
     }
     
-    public enum Reference: Codable, Sendable {
+    public enum Reference: Codable, Sendable, Equatable {
         case prompt(PromptReference)
         case resource(ResourceReference)
         
@@ -93,7 +93,7 @@ public struct CompleteResult: Result {
     public let _meta: ResultMetadata?
     
     /// Completion results structure
-    public struct Completion: Codable, Sendable {
+    public struct Completion: Codable, Sendable, Equatable {
         /// An array of completion values. Must not exceed 100 items.
         public let values: [String]
         /// Indicates whether there are additional completion options beyond those provided

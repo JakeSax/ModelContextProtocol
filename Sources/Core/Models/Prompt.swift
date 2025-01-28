@@ -6,7 +6,7 @@
 //
 
 /// A prompt or prompt template that the server offers.
-public struct Prompt: Codable, Sendable {
+public struct Prompt: Codable, Sendable, Equatable {
     
     // MARK: Properties
     /// The name of the prompt or prompt template.
@@ -27,7 +27,7 @@ public struct Prompt: Codable, Sendable {
     
     // MARK: Data Structures
     /// Describes an argument that a prompt can accept.
-    public struct Argument: Codable, Sendable {
+    public struct Argument: Codable, Sendable, Equatable {
         /// The name of the argument.
         public let name: String
         

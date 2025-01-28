@@ -6,7 +6,7 @@
 //
 
 /// Describes a message issued to or received from an LLM API.
-public struct SamplingMessage: Codable, Sendable {
+public struct SamplingMessage: Codable, Sendable, Equatable {
     /// The content of the message, which can be either text or image.
     public let content: MessageContent
     

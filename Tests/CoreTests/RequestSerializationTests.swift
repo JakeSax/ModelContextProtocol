@@ -10,6 +10,44 @@ import Foundation
 @testable import MCPCore
 
 struct RequestSerializationTests {
+    
+    /// Tests whether the provided request encodes to and decodes from the expected
+    /// JSON representation as well as encoding to and from a `JSONRPCRequest`
+    /// and tests for equality.
+    /// - Parameters:
+    ///   - request: The request to test encoding and decoding.
+    ///   - expectedJSON: The JSON string that the object should encode to.
+    private func validateRequestCoding<T: Request>(
+        of request: T,
+        matchesJSON expectedJSON: String
+    ) throws {
+        try validateCoding(of: request, matchesJSON: expectedJSON)
+        let jsonRPCRequest = try JSONRPCRequest(id: 1, request: request)
+        let encodedJSONRPCRequest = try JSONEncoder().encode(jsonRPCRequest)
+        let decodedJSONRPCRequest = try JSONDecoder().decode(
+            JSONRPCRequest.self,
+            from: encodedJSONRPCRequest
+        )
+        #expect(jsonRPCRequest == decodedJSONRPCRequest)
+        
+        let decodedRequest = try jsonRPCRequest.asRequest(T.self)
+        #expect(request == decodedRequest)
+        
+        let jsonRPCMessage = JSONRPCMessage.request(jsonRPCRequest)
+        let encodedJSONRPCMessage = try JSONEncoder().encode(jsonRPCMessage)
+        let decodedRPCMessage = try JSONDecoder().decode(JSONRPCMessage.self, from: encodedJSONRPCMessage)
+        #expect(decodedRPCMessage == jsonRPCMessage)
+        
+        let requestFromMessage = decodedRPCMessage.value as? JSONRPCRequest
+        #expect(requestFromMessage == jsonRPCRequest)
+    }
+    
+    @Test func encodeDefaultRequestParameters() throws {
+        let parameters = DefaultRequestParameters()
+        let encoded = try JSONEncoder().encode(parameters)
+        let decodedParameters = try JSONDecoder().decode(DefaultRequestParameters.self, from: encoded)
+        #expect(parameters == decodedParameters)
+    }
 
     @Test func encodeCallToolRequest() throws {
         let request = CallToolRequest(
@@ -26,55 +64,7 @@ struct RequestSerializationTests {
             }
         }
         """
-        try validateCoding(of: request, matchesJSON: expectedJSON)
-    }
-    
-    @Test func encodeCallToolResult() throws {
-        let result = CallToolResult(
-            content: [],
-            isError: false
-        )
-        let expectedJSON = """
-    {
-        "content": [],
-        "isError": false
-    }
-    """
-        try validateCoding(of: result, matchesJSON: expectedJSON)
-    }
-    
-    @Test func encodeCancelledNotification() throws {
-        let notification = CancelledNotification(
-            params: .init(requestID: "1234", reason: "Timeout")
-        )
-        let expectedJSON = """
-    {
-        "method": "notifications/cancelled",
-        "params": {
-            "requestId": "1234",
-            "reason": "Timeout"
-        }
-    }
-    """
-        try validateCoding(of: notification, matchesJSON: expectedJSON)
-    }
-    
-    @Test func encodeClientCapabilities() throws {
-        let capabilities = ClientCapabilities(
-            roots: .init(listChanged: true),
-            sampling: [:],
-            experimental: [:]
-        )
-        let expectedJSON = """
-    {
-        "experimental": {},
-        "roots": {
-            "listChanged": true
-        },
-        "sampling": {}
-    }
-    """
-        try validateCoding(of: capabilities, matchesJSON: expectedJSON)
+        try validateRequestCoding(of: request, matchesJSON: expectedJSON)
     }
     
     @Test func encodeInitializeRequest() throws {
@@ -108,7 +98,7 @@ struct RequestSerializationTests {
         }
     }
     """
-        try validateCoding(of: request, matchesJSON: expectedJSON)
+        try validateRequestCoding(of: request, matchesJSON: expectedJSON)
     }
     
     @Test func encodeCompleteRequest() throws {
@@ -133,7 +123,7 @@ struct RequestSerializationTests {
         }
     }
     """
-        try validateCoding(of: request, matchesJSON: expectedJSON)
+        try validateRequestCoding(of: request, matchesJSON: expectedJSON)
     }
 
     @Test func encodeListToolsRequest() throws {
@@ -148,7 +138,7 @@ struct RequestSerializationTests {
         }
     }
     """
-        try validateCoding(of: request, matchesJSON: expectedJSON)
+        try validateRequestCoding(of: request, matchesJSON: expectedJSON)
     }
     
     @Test func encodeGetPromptRequest() throws {
@@ -166,7 +156,7 @@ struct RequestSerializationTests {
         }
     }
     """
-        try validateCoding(of: request, matchesJSON: expectedJSON)
+        try validateRequestCoding(of: request, matchesJSON: expectedJSON)
     }
     
     @Test func encodeListPromptsRequest() throws {
@@ -181,7 +171,7 @@ struct RequestSerializationTests {
         }
     }
     """
-        try validateCoding(of: request, matchesJSON: expectedJSON)
+        try validateRequestCoding(of: request, matchesJSON: expectedJSON)
     }
 
     
@@ -197,7 +187,7 @@ struct RequestSerializationTests {
         }
     }
     """
-        try validateCoding(of: request, matchesJSON: expectedJSON)
+        try validateRequestCoding(of: request, matchesJSON: expectedJSON)
     }
 
     @Test func encodeListResourceTemplatesRequest() throws {
@@ -212,7 +202,7 @@ struct RequestSerializationTests {
         }
     }
     """
-        try validateCoding(of: request, matchesJSON: expectedJSON)
+        try validateRequestCoding(of: request, matchesJSON: expectedJSON)
     }
 
     @Test func encodeReadResourceRequest() throws {
@@ -227,7 +217,7 @@ struct RequestSerializationTests {
         }
     }
     """
-        try validateCoding(of: request, matchesJSON: expectedJSON)
+        try validateRequestCoding(of: request, matchesJSON: expectedJSON)
     }
 
     @Test func encodeSetLevelRequest() throws {
@@ -242,7 +232,7 @@ struct RequestSerializationTests {
         }
     }
     """
-        try validateCoding(of: request, matchesJSON: expectedJSON)
+        try validateRequestCoding(of: request, matchesJSON: expectedJSON)
     }
 
     @Test func encodePingRequest() throws {
@@ -252,7 +242,7 @@ struct RequestSerializationTests {
         "method": "ping"
     }
     """
-        try validateCoding(of: request, matchesJSON: expectedJSON)
+        try validateRequestCoding(of: request, matchesJSON: expectedJSON)
     }
     
     @Test func encodeSubscribeRequest() throws {
@@ -267,7 +257,7 @@ struct RequestSerializationTests {
         }
     }
     """
-        try validateCoding(of: request, matchesJSON: expectedJSON)
+        try validateRequestCoding(of: request, matchesJSON: expectedJSON)
     }
     
     @Test func encodeUnsubscribeRequest() throws {
@@ -282,7 +272,7 @@ struct RequestSerializationTests {
         }
     }
     """
-        try validateCoding(of: request, matchesJSON: expectedJSON)
+        try validateRequestCoding(of: request, matchesJSON: expectedJSON)
     }
 
     @Test func encodeListRootsRequest() throws {
@@ -292,7 +282,7 @@ struct RequestSerializationTests {
         "method": "roots/list"
     }
     """
-        try validateCoding(of: request, matchesJSON: expectedJSON)
+        try validateRequestCoding(of: request, matchesJSON: expectedJSON)
     }
 
 }

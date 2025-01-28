@@ -6,9 +6,9 @@
 //
 
 /// Client capabilities supported by the implementation
-public struct ClientCapabilities: Codable, Sendable {
+public struct ClientCapabilities: Codable, Sendable, Equatable {
     /// Root listing support configuration
-    public struct RootsSupport: Codable, Sendable {
+    public struct RootsSupport: Codable, Sendable, Equatable {
         /// Whether client supports root list change notifications
         public let listChanged: Bool
         

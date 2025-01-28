@@ -6,7 +6,7 @@
 //
 
 /// Identifies the type of object that is being referenced.
-public enum ReferenceTypeIdentifier: String, RawRepresentable, Codable, Sendable, CaseIterable {
+public enum ReferenceTypeIdentifier: String, RawRepresentable, Codable, Sendable, CaseIterable, Equatable {
     case prompt = "ref/prompt"
     case resource = "ref/resource"
 }

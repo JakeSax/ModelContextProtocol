@@ -5,12 +5,42 @@
 //  Created by Jake Sax on 1/28/25.
 //
 
-
 import Testing
 import Foundation
 @testable import MCPCore
 
 struct NotificationSerializationTests {
+    
+    /// Tests whether the provided notification encodes to and decodes from the expected
+    /// JSON representation as well as encoding to and from a `JSONRPCNotification`
+    /// and tests for equality.
+    /// - Parameters:
+    ///   - result: The notification to test encoding and decoding.
+    ///   - expectedJSON: The JSON string that the object should encode to.
+    private func validateNotificationCoding<T: MCPCore.Notification>(
+        of notification: T,
+        matchesJSON expectedJSON: String
+    ) throws {
+        try validateCoding(of: notification, matchesJSON: expectedJSON)
+        let jsonRPCNotification = try JSONRPCNotification(notification: notification)
+        let encodedJSONRPCNotification = try JSONEncoder().encode(jsonRPCNotification)
+        let decodedJSONRPCNotification = try JSONDecoder().decode(
+            JSONRPCNotification.self,
+            from: encodedJSONRPCNotification
+        )
+        #expect(jsonRPCNotification == decodedJSONRPCNotification)
+        
+        let decodedNotification = try jsonRPCNotification.asNotification(T.self)
+        #expect(notification == decodedNotification)
+        
+        let jsonRPCMessage = JSONRPCMessage.notification(jsonRPCNotification)
+        let encodedJSONRPCMessage = try JSONEncoder().encode(jsonRPCMessage)
+        let decodedRPCMessage = try JSONDecoder().decode(JSONRPCMessage.self, from: encodedJSONRPCMessage)
+        #expect(decodedRPCMessage == jsonRPCMessage)
+        
+        let notificationFromMessage = decodedRPCMessage.value as? JSONRPCNotification
+        #expect(notificationFromMessage == jsonRPCNotification)
+    }
     
     @Test func encodeCancelledNotification() throws {
         let notification = CancelledNotification(
@@ -25,7 +55,7 @@ struct NotificationSerializationTests {
         }
     }
     """
-        try validateCoding(of: notification, matchesJSON: expectedJSON)
+        try validateNotificationCoding(of: notification, matchesJSON: expectedJSON)
     }
     
     @Test func encodeInitializedNotification() throws {
@@ -38,7 +68,7 @@ struct NotificationSerializationTests {
         "params": {}
     }
     """
-        try validateCoding(of: notification, matchesJSON: expectedJSON)
+        try validateNotificationCoding(of: notification, matchesJSON: expectedJSON)
     }
 
     @Test func encodeProgressNotification() throws {
@@ -55,7 +85,7 @@ struct NotificationSerializationTests {
         }
     }
     """
-        try validateCoding(of: notification, matchesJSON: expectedJSON)
+        try validateNotificationCoding(of: notification, matchesJSON: expectedJSON)
     }
 
     @Test func encodeRootsListChangedNotification() throws {
@@ -68,7 +98,7 @@ struct NotificationSerializationTests {
         "params": {}
     }
     """
-        try validateCoding(of: notification, matchesJSON: expectedJSON)
+        try validateNotificationCoding(of: notification, matchesJSON: expectedJSON)
     }
 
     @Test func encodeResourceListChangedNotification() throws {
@@ -81,7 +111,7 @@ struct NotificationSerializationTests {
         "params": {}
     }
     """
-        try validateCoding(of: notification, matchesJSON: expectedJSON)
+        try validateNotificationCoding(of: notification, matchesJSON: expectedJSON)
     }
 
     @Test func encodeResourceUpdatedNotification() throws {
@@ -96,7 +126,7 @@ struct NotificationSerializationTests {
         }
     }
     """
-        try validateCoding(of: notification, matchesJSON: expectedJSON)
+        try validateNotificationCoding(of: notification, matchesJSON: expectedJSON)
     }
 
     @Test func encodePromptListChangedNotification() throws {
@@ -109,7 +139,7 @@ struct NotificationSerializationTests {
         "params": {}
     }
     """
-        try validateCoding(of: notification, matchesJSON: expectedJSON)
+        try validateNotificationCoding(of: notification, matchesJSON: expectedJSON)
     }
 
     @Test func encodeToolListChangedNotification() throws {
@@ -122,7 +152,7 @@ struct NotificationSerializationTests {
         "params": {}
     }
     """
-        try validateCoding(of: notification, matchesJSON: expectedJSON)
+        try validateNotificationCoding(of: notification, matchesJSON: expectedJSON)
     }
 
     @Test func encodeLoggingMessageNotification() throws {
@@ -139,7 +169,7 @@ struct NotificationSerializationTests {
         }
     }
     """
-        try validateCoding(of: notification, matchesJSON: expectedJSON)
+        try validateNotificationCoding(of: notification, matchesJSON: expectedJSON)
     }
 
 }

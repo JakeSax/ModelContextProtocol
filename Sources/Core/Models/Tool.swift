@@ -6,7 +6,7 @@
 //
 
 /// Definition for a tool the client can call
-public struct Tool: Codable, Sendable {
+public struct Tool: Codable, Sendable, Equatable {
     
     // MARK: Properties
     /// The name of the tool
@@ -27,7 +27,7 @@ public struct Tool: Codable, Sendable {
     
     // MARK: Data Structures
     /// Defines expected parameters for a tool using JSON Schema
-    public struct ToolInputSchema: Codable, Sendable {
+    public struct ToolInputSchema: Codable, Sendable, Equatable {
         public let type: String
         /// Properties/parameters specific to this tool.
         public let properties: [String: DynamicValue]?

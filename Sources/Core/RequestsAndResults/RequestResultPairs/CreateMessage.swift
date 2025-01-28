@@ -17,7 +17,7 @@ public struct CreateMessageRequest: Request {
     public let params: MessageParameters
     
     // MARK: Initialization
-    init(params: MessageParameters) {
+    public init(params: MessageParameters) {
         self.method = .createMessage
         self.params = params
     }
@@ -50,7 +50,7 @@ public struct CreateMessageRequest: Request {
     }
     
     /// Available context inclusion options for message creation
-    public enum ContextInclusion: String, Codable, Sendable {
+    public enum ContextInclusion: String, Codable, Sendable, Equatable {
         case allServers
         case none
         case thisServer

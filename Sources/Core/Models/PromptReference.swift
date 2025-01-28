@@ -6,7 +6,7 @@
 //
 
 /// Identifies a prompt.
-public struct PromptReference: Codable, Sendable {
+public struct PromptReference: Codable, Sendable, Equatable {
     /// The name of the prompt or prompt template
     public let name: String
     

@@ -6,7 +6,7 @@
 //
 
 /// Capabilities that a server may support.
-public struct ServerCapabilities: Codable, Sendable {
+public struct ServerCapabilities: Codable, Sendable, Equatable {
     
     // MARK: Properties
     /// Experimental, non-standard capabilities that the server supports.
@@ -27,13 +27,13 @@ public struct ServerCapabilities: Codable, Sendable {
     
     // MARK: Data Structures
     /// Capabilities related to prompts
-    public struct PromptCapabilities: Codable, Sendable {
+    public struct PromptCapabilities: Codable, Sendable, Equatable {
         /// Whether this server supports notifications for changes to the prompt list.
         public var listChanged: Bool?
     }
     
     /// Capabilities related to resources
-    public struct ResourceCapabilities: Codable, Sendable {
+    public struct ResourceCapabilities: Codable, Sendable, Equatable {
         /// Whether this server supports notifications for changes to the resource list.
         public var listChanged: Bool?
         
@@ -42,7 +42,7 @@ public struct ServerCapabilities: Codable, Sendable {
     }
     
     /// Capabilities related to tools
-    public struct ToolCapabilities: Codable, Sendable {
+    public struct ToolCapabilities: Codable, Sendable, Equatable {
         /// Whether this server supports notifications for changes to the tool list.
         public var listChanged: Bool?
     }

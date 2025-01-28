@@ -10,7 +10,7 @@
 /// Because LLMs can vary along multiple dimensions, choosing the "best" model is
 /// rarely straightforward. Different models excel in different areas—some are
 /// faster but less capable, others are more capable but more expensive.
-public struct ModelPreferences: Codable, Sendable {
+public struct ModelPreferences: Codable, Sendable, Equatable {
     /// How much to prioritize cost (0 = not important, 1 = most important)
     public let costPriority: Double
     
@@ -52,7 +52,7 @@ public struct ModelPreferences: Codable, Sendable {
     }
 
     /// Hints to use for model selection.
-    public struct ModelHint: Codable, Sendable {
+    public struct ModelHint: Codable, Sendable, Equatable {
         /// A hint for a model name.
         ///
         /// The client should treat this as a substring of a model name. For example:

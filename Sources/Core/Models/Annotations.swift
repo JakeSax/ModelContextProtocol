@@ -13,7 +13,7 @@ public protocol Annotated {
 }
 
 /// Describes metadata annotations that can be attached to objects
-public struct Annotations: Codable, Sendable {
+public struct Annotations: Codable, Sendable, Equatable {
     /// Describes who the intended customer of this object or data is.
     ///
     /// It can include multiple entries to indicate content useful for multiple audiences

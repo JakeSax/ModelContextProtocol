@@ -42,7 +42,6 @@ public struct ReadResourceRequest: Request {
     }
 }
 
-
 /// The server's response to a resources/read request from the client.
 public struct ReadResourceResult: Result {
     /// The contents of the resource

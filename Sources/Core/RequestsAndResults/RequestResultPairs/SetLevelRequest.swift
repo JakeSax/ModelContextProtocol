@@ -16,7 +16,7 @@ public struct SetLevelRequest: Request {
     public let params: LoggingParameters
     
     // MARK: Initialization
-    init(params: LoggingParameters) {
+    public init(params: LoggingParameters) {
         self.method = Self.method
         self.params = params
     }

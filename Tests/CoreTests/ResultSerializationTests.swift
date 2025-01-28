@@ -10,6 +10,38 @@ import Foundation
 @testable import MCPCore
 
 struct ResultSerializationTests {
+    
+    /// Tests whether the provided result encodes to and decodes from the expected
+    /// JSON representation as well as encoding to and from a `JSONRPCResult`
+    /// and tests for equality.
+    /// - Parameters:
+    ///   - result: The result to test encoding and decoding.
+    ///   - expectedJSON: The JSON string that the object should encode to.
+    private func validateResultCoding<T: Result>(
+        of result: T,
+        matchesJSON expectedJSON: String
+    ) throws {
+        try validateCoding(of: result, matchesJSON: expectedJSON)
+        let jsonRPCResponse = try JSONRPCResponse(id: 1, result: result)
+        let encodedJSONRPCResponse = try JSONEncoder().encode(jsonRPCResponse)
+        let decodedJSONRPCResponse = try JSONDecoder().decode(
+            JSONRPCResponse.self,
+            from: encodedJSONRPCResponse
+        )
+        #expect(jsonRPCResponse == decodedJSONRPCResponse)
+        
+        let decodedResult = try jsonRPCResponse.asResult(T.self)
+        #expect(result == decodedResult)
+        
+        let jsonRPCMessage = JSONRPCMessage.response(jsonRPCResponse)
+        let encodedJSONRPCMessage = try JSONEncoder().encode(jsonRPCMessage)
+        let decodedRPCMessage = try JSONDecoder().decode(JSONRPCMessage.self, from: encodedJSONRPCMessage)
+        #expect(decodedRPCMessage == jsonRPCMessage)
+        
+        let responseFromMessage = decodedRPCMessage.value as? JSONRPCResponse
+        #expect(responseFromMessage == jsonRPCResponse)
+    }
+    
     @Test func encodeCallToolResult() throws {
         let result = CallToolResult(
             content: [
@@ -28,7 +60,7 @@ struct ResultSerializationTests {
         "isError": false
     }
     """
-        try validateCoding(of: result, matchesJSON: expectedJSON)
+        try validateResultCoding(of: result, matchesJSON: expectedJSON)
     }
     
     @Test func encodeCompleteResult() throws {
@@ -48,7 +80,7 @@ struct ResultSerializationTests {
         }
     }
     """
-        try validateCoding(of: result, matchesJSON: expectedJSON)
+        try validateResultCoding(of: result, matchesJSON: expectedJSON)
     }
 
     @Test func encodeCreateMessageResult() throws {
@@ -69,7 +101,7 @@ struct ResultSerializationTests {
         "stopReason": "length"
     }
     """
-        try validateCoding(of: result, matchesJSON: expectedJSON)
+        try validateResultCoding(of: result, matchesJSON: expectedJSON)
     }
 
     @Test func encodeGetPromptResult() throws {
@@ -93,7 +125,7 @@ struct ResultSerializationTests {
         "description": "Example prompt"
     }
     """
-        try validateCoding(of: result, matchesJSON: expectedJSON)
+        try validateResultCoding(of: result, matchesJSON: expectedJSON)
     }
     
     @Test func encodeListPromptsResult() throws {
@@ -119,7 +151,7 @@ struct ResultSerializationTests {
         "nextCursor": "nextPageToken"
     }
     """
-        try validateCoding(of: result, matchesJSON: expectedJSON)
+        try validateResultCoding(of: result, matchesJSON: expectedJSON)
     }
 
     @Test func encodeListResourcesResult() throws {
@@ -145,7 +177,7 @@ struct ResultSerializationTests {
         "nextCursor": "resourceCursor"
     }
     """
-        try validateCoding(of: result, matchesJSON: expectedJSON)
+        try validateResultCoding(of: result, matchesJSON: expectedJSON)
     }
 
     @Test func encodeListResourceTemplatesResult() throws {
@@ -171,7 +203,7 @@ struct ResultSerializationTests {
         "nextCursor": "templateCursor"
     }
     """
-        try validateCoding(of: result, matchesJSON: expectedJSON)
+        try validateResultCoding(of: result, matchesJSON: expectedJSON)
     }
 
     
@@ -206,7 +238,7 @@ struct ResultSerializationTests {
         "nextCursor": "toolsCursor"
     }
     """
-        try validateCoding(of: result, matchesJSON: expectedJSON)
+        try validateResultCoding(of: result, matchesJSON: expectedJSON)
     }
 
     @Test func encodeReadResourceResult() throws {
@@ -225,7 +257,7 @@ struct ResultSerializationTests {
         ]
     }
     """
-        try validateCoding(of: result, matchesJSON: expectedJSON)
+        try validateResultCoding(of: result, matchesJSON: expectedJSON)
     }
 
     @Test func encodeListRootsResult() throws {
@@ -247,7 +279,7 @@ struct ResultSerializationTests {
         ]
     }
     """
-        try validateCoding(of: result, matchesJSON: expectedJSON)
+        try validateResultCoding(of: result, matchesJSON: expectedJSON)
     }
 
     @Test func encodeInitializeResult() throws {
@@ -268,7 +300,7 @@ struct ResultSerializationTests {
         "instructions": "Welcome to the server."
     }
     """
-        try validateCoding(of: result, matchesJSON: expectedJSON)
+        try validateResultCoding(of: result, matchesJSON: expectedJSON)
     }
 
 }
