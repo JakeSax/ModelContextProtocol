@@ -10,14 +10,15 @@
 /// This is similar to `SamplingMessage`, but also supports the embedding of
 /// resources from the MCP server.
 public struct PromptMessage: Codable, Sendable {
-    /// The content of the message, which can be text, image, or an embedded resource
-    public let content: MessageContent
     
     /// The role associated with this message
     public let role: Role
     
-    public init(content: MessageContent, role: Role) {
-        self.content = content
+    /// The content of the message, which can be text, image, or an embedded resource
+    public let content: MessageContent
+    
+    public init(role: Role, content: MessageContent) {
         self.role = role
+        self.content = content
     }
 }

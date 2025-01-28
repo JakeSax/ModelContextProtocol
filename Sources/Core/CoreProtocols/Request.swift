@@ -51,8 +51,16 @@ public struct DefaultRequestParameters: RequestParameters {
     public let _meta: RequestMetadata?
     public var additionalProperties: [String: DynamicValue]?
     
+    /// Whether there is no metadata and no additional properties, or not.
+    var isEmpty: Bool {
+        _meta == nil && (additionalProperties == nil || additionalProperties?.isEmpty == true)
+    }
+    
     // MARK: Initialization
-    public init(meta: RequestMetadata? = nil, additionalProperties: [String : DynamicValue]? = nil) {
+    public init(
+        meta: RequestMetadata? = nil,
+        additionalProperties: [String : DynamicValue]? = nil
+    ) {
         self._meta = meta
         self.additionalProperties = additionalProperties
     }

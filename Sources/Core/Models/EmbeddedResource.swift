@@ -50,16 +50,23 @@ public enum ResourceContent: Codable, Sendable {
     public func encode(to encoder: Encoder) throws {
         var container = encoder.singleValueContainer()
         switch self {
-        case .text(let content):
-            try container.encode(content)
-        case .blob(let content):
-            try container.encode(content)
+        case .text(let content): try container.encode(content)
+        case .blob(let content): try container.encode(content)
         }
     }
 }
 
+/// The contents of a specific resource or sub-resource.
+protocol ResourceContents: Codable, Sendable {
+    /// The MIME type of this resource, if known.
+    var mimeType: String? { get }
+    
+    /// The URI of this resource.
+    var uri: String { get }
+}
+
 /// Represents the contents of a text resource with its location and format
-public struct TextResourceContents: Codable, Sendable {
+public struct TextResourceContents: ResourceContents {
     /// The text content. Must only be set if item can be represented as text.
     public let text: String
     
@@ -77,17 +84,17 @@ public struct TextResourceContents: Codable, Sendable {
 }
 
 /// Represents a binary resource with its metadata
-public struct BlobResourceContents: Codable, Sendable {
+public struct BlobResourceContents: ResourceContents {
     /// Base64-encoded string representing the binary data
     public let blob: Data
     
     /// The URI of this resource
-    public let uri: URL
+    public let uri: String
     
     /// The MIME type of this resource, if known
     public let mimeType: String?
     
-    public init(blob: Data, mimeType: String? = nil, uri: URL) {
+    public init(blob: Data, mimeType: String? = nil, uri: String) {
         self.blob = blob
         self.mimeType = mimeType
         self.uri = uri

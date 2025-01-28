@@ -46,11 +46,11 @@ public struct ReadResourceRequest: Request {
 /// The server's response to a resources/read request from the client.
 public struct ReadResourceResult: Result {
     /// The contents of the resource
-    public let contents: [ResourceContents]
+    public let contents: [ResourceContent]
     
     public let _meta: ResultMetadata?
     
-    public init(contents: [ResourceContents], meta: ResultMetadata? = nil) {
+    public init(contents: [ResourceContent], meta: ResultMetadata? = nil) {
         self.contents = contents
         self._meta = meta
     }

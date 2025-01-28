@@ -42,6 +42,12 @@ public struct CompleteRequest: Request {
             /// The value of the argument to use for completion matching
             public let value: String
         }
+        
+        init(argument: Argument, ref: Reference, meta: RequestMetadata? = nil) {
+            self.argument = argument
+            self.ref = ref
+            self._meta = meta
+        }
     }
     
     public enum Reference: Codable, Sendable {

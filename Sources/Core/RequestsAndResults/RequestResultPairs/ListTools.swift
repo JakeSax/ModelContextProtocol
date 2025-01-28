@@ -31,17 +31,17 @@ public struct ListToolsRequest: PaginatedRequest {
 /// The response containing available tools from the server
 public struct ListToolsResult: PaginatedResult {
     
-    /// Array of available tools
-    public let tools: [Tool]
-    
     /// Token for accessing the next page of results
     public let nextCursor: Cursor?
+    
+    /// Array of available tools
+    public let tools: [Tool]
     
     public let _meta: ResultMetadata?
     
     public init(
-        tools: [Tool],
         nextCursor: Cursor? = nil,
+        tools: [Tool],
         meta: ResultMetadata? = nil
     ) {
         self.tools = tools

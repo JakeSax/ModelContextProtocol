@@ -22,6 +22,11 @@ public struct PingRequest: AnyServerRequest {
     }
     
     // MARK: Codable Conformance
+    enum CodingKeys: CodingKey {
+        case method
+        case params
+    }
+    
     public init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         let method = try container.decode(MethodIdentifier.self, forKey: .method)
@@ -30,6 +35,14 @@ public struct PingRequest: AnyServerRequest {
             DefaultRequestParameters.self,
             forKey: .params
         ) ?? .init()
+    }
+    
+    public func encode(to encoder: any Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(self.method, forKey: .method)
+        if !self.params.isEmpty {
+            try container.encode(self.params, forKey: .params)
+        }
     }
     
 }

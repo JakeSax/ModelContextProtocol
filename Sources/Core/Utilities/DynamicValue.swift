@@ -66,6 +66,19 @@ public enum DynamicValue: Codable, Sendable {
             )
         }
     }
+    
+    public func encode(to encoder: any Encoder) throws {
+        var container = encoder.singleValueContainer()
+        switch self {
+        case .string(let string): try container.encode(string)
+        case .int(let int): try container.encode(int)
+        case .double(let double): try container.encode(double)
+        case .dictionary(let (dictionary)): try container.encode(dictionary)
+        case .array(let array): try container.encode(array)
+        case .bool(let bool): try container.encode(bool)
+        case .null: try container.encodeNil()
+        }
+    }
 }
 
 extension DynamicValue: ExpressibleByStringLiteral {

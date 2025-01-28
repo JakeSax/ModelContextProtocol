@@ -50,21 +50,6 @@ public struct Resource: Codable, Sendable, Annotated {
     }
 }
 
-
-/// The contents of a specific resource or sub-resource.
-public struct ResourceContents: Codable, Sendable {
-    /// The MIME type of this resource, if known.
-    public var mimeType: String?
-    
-    /// The URI of this resource.
-    public var uri: String
-    
-    public init(mimeType: String? = nil, uri: String) {
-        self.mimeType = mimeType
-        self.uri = uri
-    }
-}
-
 /// A reference to a resource or resource template definition.
 public struct ResourceReference: Codable, Sendable {
     /// The type identifier for resource references.

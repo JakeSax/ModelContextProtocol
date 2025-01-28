@@ -26,11 +26,11 @@ public struct LoggingMessageNotification: AnyServerNotification {
     // MARK: Data Structures
     /// Parameters containing the log message details
     public struct Parameters: NotificationParameters {
-        /// The log message content
-        public let data: DynamicValue
-        
         /// The severity level of the message
         public let level: LoggingLevel
+        
+        /// The log message content
+        public let data: DynamicValue
         
         /// Optional name of the logger
         public let logger: String?
@@ -38,13 +38,13 @@ public struct LoggingMessageNotification: AnyServerNotification {
         public let _meta: NotificationMetadata?
         
         public init(
-            data: DynamicValue,
             level: LoggingLevel,
+            data: DynamicValue,
             logger: String? = nil,
             meta: NotificationMetadata? = nil
         ) {
-            self.data = data
             self.level = level
+            self.data = data
             self.logger = logger
             self._meta = meta
         }
