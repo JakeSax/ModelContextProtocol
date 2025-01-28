@@ -23,18 +23,19 @@ public struct ProgressNotification: AnyClientNotification {
         /// Total number of items to process (or total progress required), if known.
         public let total: Double?
         
-        public let _meta: [String: DynamicValue]?
+        public let _meta: NotificationMetadata?
         
-        init(progress: Double, progressToken: ProgressToken, total: Double?, meta: [String : DynamicValue]? = nil) {
+        init(
+            progress: Double,
+            progressToken: ProgressToken,
+            total: Double?,
+            meta: NotificationMetadata? = nil
+        ) {
             self.progress = progress
             self.progressToken = progressToken
             self.total = total
             self._meta = meta
         }
-    }
-    
-    private enum CodingKeys: String, CodingKey {
-        case method, params
     }
     
     public init(params: Parameters) {
@@ -69,9 +70,13 @@ public struct CancelledNotification: AnyClientNotification {
         /// MAY be logged or presented to the user.
         public let reason: String?
         
-        public let _meta: [String: DynamicValue]?
+        public let _meta: NotificationMetadata?
         
-        public init(requestID: RequestID, reason: String? = nil, meta: [String: DynamicValue]? = nil) {
+        public init(
+            requestID: RequestID,
+            reason: String? = nil,
+            meta: NotificationMetadata? = nil
+        ) {
             self.requestId = requestID
             self.reason = reason
             self._meta = meta

@@ -50,13 +50,13 @@ public struct ListRootsResult: Codable, Sendable {
 /// A notification from the client to the server, informing it that the list of roots has changed.
 /// This notification should be sent whenever the client adds, removes, or modifies any root.
 /// The server should then request an updated list of roots using the ``ListRootsRequest``.
-public struct RootsListChangedNotification: MethodIdentified {
+public struct RootsListChangedNotification: Notification {
     public static let method: ClientNotification.Method = .rootsListChanged
     /// The method identifier for this notification.
     public let method: ClientNotification.Method
-    public let params: OldParameters?
+    public let params: DefaultNotificationParameters
     
-    public init(params: OldParameters? = nil) {
+    public init(params: DefaultNotificationParameters = .init()) {
         self.method = Self.method
         self.params = params
     }

@@ -134,9 +134,9 @@ public struct ResourceUpdatedNotification: AnyServerNotification {
         /// This might be a sub-resource of the one that the client actually subscribed to.
         public var uri: String
         
-        public let _meta: [String: DynamicValue]?
+        public let _meta: NotificationMetadata?
         
-        public init(uri: String, meta: [String: DynamicValue]? = nil) {
+        public init(uri: String, meta: NotificationMetadata? = nil) {
             self.uri = uri
             self._meta = meta
         }

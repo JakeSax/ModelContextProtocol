@@ -100,13 +100,13 @@ public struct LoggingMessageNotification: AnyServerNotification {
         /// Optional name of the logger
         public let logger: String?
         
-        public let _meta: [String: DynamicValue]?
+        public let _meta: NotificationMetadata?
         
         public init(
             data: DynamicValue,
             level: LoggingLevel,
             logger: String? = nil,
-            meta: [String: DynamicValue]? = nil
+            meta: NotificationMetadata? = nil
         ) {
             self.data = data
             self.level = level

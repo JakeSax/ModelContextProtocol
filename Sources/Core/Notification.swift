@@ -15,15 +15,17 @@ public protocol Notification<MethodIdentifier>: MethodIdentified {
 }
 
 public protocol NotificationParameters: Codable, Sendable {
-    /// This parameter name is reserved by MCP to allow clients and servers to attach
+    /// This property is reserved by MCP to allow clients and servers to attach
     /// additional metadata to their messages.
-    var _meta: [String: DynamicValue]? { get }
+    var _meta: NotificationMetadata? { get }
 }
+
+public typealias NotificationMetadata = [String: DynamicValue]
 
 public typealias DefaultNotificationParameters = [String: DynamicValue]
 
 extension DefaultNotificationParameters: NotificationParameters {
-    public var _meta: [String : DynamicValue]? {
+    public var _meta: NotificationMetadata? {
         switch self["_meta"] {
         case .dictionary(let dictionary): dictionary
         default: nil

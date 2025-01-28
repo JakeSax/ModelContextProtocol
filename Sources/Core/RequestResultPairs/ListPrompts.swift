@@ -46,9 +46,9 @@ public struct PromptListChangedNotification: AnyServerNotification {
     public let method: ServerNotification.Method
     
     /// Additional parameters for the notification
-    public let params: OldParameters
+    public let params: DefaultNotificationParameters
     
-    public init(params: OldParameters = [:]) {
+    public init(params: DefaultNotificationParameters = .init()) {
         self.method = Self.method
         self.params = params
     }
