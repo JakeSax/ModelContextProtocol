@@ -25,10 +25,12 @@ public struct Tool: Codable, Sendable {
     /// Defines expected parameters for a tool using JSON Schema
     public struct ToolInputSchema: Codable, Sendable {
         public let type: String
-        public let properties: OldParameters
+        /// Properties/parameters specific to this tool.
+        public let properties: [String: DynamicValue]?
+        /// The String key values from `.properties` that are required to use this tool
         public let required: [String]?
         
-        public init(properties: OldParameters, required: [String]? = nil) {
+        public init(properties: [String: DynamicValue]?, required: [String]? = nil) {
             self.type = "object"
             self.properties = properties
             self.required = required

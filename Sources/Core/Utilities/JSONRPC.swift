@@ -36,16 +36,26 @@ extension JSONRPCMessage {
 //}
 
 /// A request that expects a response.
-public protocol JSONRPCRequest: JSONRPCMessage, SupportsProgressToken {
+public protocol JSONRPCRequest: JSONRPCMessage {
     var id: RequestID { get }
     var method: String { get }
-    var params: OldParameters? { get }
+    var params: [String: DynamicValue]? { get }
+}
+
+extension JSONRPCRequest {
+    /// If specified, the caller is requesting out-of-band progress notifications for this
+    /// request (as represented by `notifications/progress`). The value of this
+    /// parameter is an opaque token that will be attached to any subsequent notifications.
+    /// The receiver is not obligated to provide these notifications.
+    public var progressToken: ProgressToken? {
+        params?["progressToken"] as? ProgressToken
+    }
 }
 
 /// A notification which does not expect a response.
 public struct JSONRPCNotification: JSONRPCMessage {
     public let method: String
-    public let params: OldParameters?
+    public let params: [String: DynamicValue]?
 }
 
 /// A successful (non-error) response to a request.

@@ -107,36 +107,3 @@ public struct DefaultRequestParameters: RequestParameters {
     }
 
 }
-
-
-//extension OldParameters: RequestParameters {
-//    
-//    public var _meta: RequestMetadata? {
-//        guard let metadata = self["_meta"] else {
-//            return nil
-//        }
-//        switch metadata {
-//        case .dictionary(let dictionary):
-//            return switch dictionary["progressToken"] {
-//            case .string(let string): RequestMetadata(progressToken: .string(string))
-//            case .int(let int): RequestMetadata(progressToken: .int(int))
-//            default: nil
-//            }
-//        default: return nil
-//        }
-//    }
-////    public var progressToken: ProgressToken? {
-////        guard let metadata = self["_meta"] else {
-////            return nil
-////        }
-////        switch metadata {
-////        case .dictionary(let dictionary):
-////            return switch dictionary["progressToken"] {
-////            case .int(let int): .int(int)
-////            case .string(let string): .string(string)
-////            default: nil
-////            }
-////        default: return nil
-////        }
-////    }
-//}

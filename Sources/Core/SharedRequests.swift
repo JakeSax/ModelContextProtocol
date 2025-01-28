@@ -24,7 +24,7 @@ public struct PingRequest: AnyServerRequest, Request {
     // MARK: Codable Conformance
     public init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        let method = try container.decode(ServerRequest.Method.self, forKey: .method)
+        let method = try container.decode(MethodIdentifier.self, forKey: .method)
         guard method == Self.method else {
             throw DecodingError.dataCorrupted(
                 DecodingError.Context(

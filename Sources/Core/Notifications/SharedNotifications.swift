@@ -5,6 +5,8 @@
 //  Created by Jake Sax on 1/27/25.
 //
 
+public typealias ProgressToken = StringOrIntValue
+
 /// An out-of-band notification used to inform the receiver of a progress update for a
 /// long-running request. This notification may be sent or received by either server or
 /// client.
@@ -26,7 +28,7 @@ public struct ProgressNotification: AnyClientNotification {
     // MARK: Data Structures
     public struct Parameters: NotificationParameters {
         /// The progress thus far. This should increase every time progress is made,
-        ///  even if the total is unknown.
+        /// even if the total is unknown.
         public let progress: Double
         /// The progress token which was given in the initial request, used to associate
         /// this notification with the request that is proceeding.

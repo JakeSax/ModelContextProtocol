@@ -32,9 +32,7 @@ public struct CreateMessageRequest: Request {
         
         /// Request to include context from MCP servers
         public let includeContext: ContextInclusion?
-        
-        /// Provider-specific metadata to pass through
-        public let metadata: OldParameters?
+
         
         /// Server's model preferences (client may ignore)
         public let modelPreferences: ModelPreferences?
