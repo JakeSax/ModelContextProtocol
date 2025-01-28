@@ -22,7 +22,7 @@
 /// ```
 public enum ServerResult: Codable, Sendable {
     
-    case standard(Result)
+    case standard(AnyResult)
     case initialize(InitializeResult)
     case listResources(ListResourcesResult)
     case listResourceTemplates(ListResourceTemplatesResult)
@@ -54,7 +54,7 @@ public enum ServerResult: Codable, Sendable {
             self = .callTool(callTool)
         } else if let complete = try? container.decode(CompleteResult.self) {
             self = .complete(complete)
-        } else if let standard = try? container.decode(Result.self) {
+        } else if let standard = try? container.decode(AnyResult.self) {
             self = .standard(standard)
         } else {
             throw DecodingError.dataCorruptedError(

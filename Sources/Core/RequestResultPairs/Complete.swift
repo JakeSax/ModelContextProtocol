@@ -72,10 +72,10 @@ public enum ReferenceTypeIdentifier: String, AnyMethodIdentifier {
 
 /// The server's response to a completion/complete request
 public struct CompleteResult: Codable, Sendable {
-    /// Metadata attached to the response
-    public let meta: DynamicValue?
     /// The completion results
     public let completion: Completion
+    
+    public let _meta: ResultMetadata?
     
     /// Completion results structure
     public struct Completion: Codable, Sendable {
@@ -85,5 +85,10 @@ public struct CompleteResult: Codable, Sendable {
         public let hasMore: Bool?
         /// The total number of completion options available
         public let total: Int?
+    }
+    
+    init(completion: Completion, meta: ResultMetadata? = nil) {
+        self.completion = completion
+        self._meta = meta
     }
 }

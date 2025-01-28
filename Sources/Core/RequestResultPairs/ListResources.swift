@@ -20,8 +20,8 @@ public struct ListResourcesRequest: PaginatableRequest {
 }
 
 /// The server's response to a resources/list request.
-public struct ListResourcesResult: Codable, Sendable {
-    
+public struct ListResourcesResult: Result {
+#warning("add paginated result")
     /// Token representing the pagination position after the last result.
     /// If present, more results may be available.
     public let nextCursor: String?
@@ -29,17 +29,16 @@ public struct ListResourcesResult: Codable, Sendable {
     /// The list of returned resources.
     public let resources: [Resource]
     
-    /// Reserved metadata field for additional response information.
-    public let meta: OldParameters?
+    public let _meta: ResultMetadata?
     
     public init(
         nextCursor: String? = nil,
         resources: [Resource],
         meta: [String: DynamicValue]? = nil
     ) {
-        self.meta = meta
         self.nextCursor = nextCursor
         self.resources = resources
+        self._meta = meta
     }
 }
 

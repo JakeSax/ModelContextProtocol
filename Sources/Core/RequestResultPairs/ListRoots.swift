@@ -34,16 +34,16 @@ public struct ListRootsRequest: Request {
  * This result contains an array of Root objects, each representing a root directory
  * or file that the server can operate on.
  */
-public struct ListRootsResult: Codable, Sendable {
-    /// Additional metadata attached to the response
-    public let meta: OldParameters?
+public struct ListRootsResult: Result {
     
     /// Array of root objects representing accessible directories/files
     public let roots: [Root]
     
-    public init(roots: [Root], meta: OldParameters? = nil) {
+    public let _meta: ResultMetadata?
+    
+    public init(roots: [Root], meta: ResultMetadata? = nil) {
         self.roots = roots
-        self.meta = meta
+        self._meta = meta
     }
 }
 

@@ -60,9 +60,7 @@ public struct CreateMessageRequest: Request {
 }
 
 /// The client's response to a sampling/create_message request from the server.
-public struct CreateMessageResult: Codable, Sendable {
-    /// Additional metadata attached to the response.
-    public let meta: OldParameters?
+public struct CreateMessageResult: Result {
     
     /// The content of the generated message.
     public let content: MessageContent
@@ -76,17 +74,19 @@ public struct CreateMessageResult: Codable, Sendable {
     /// The reason why sampling stopped, if known.
     public let stopReason: String?
     
+    public let _meta: ResultMetadata?
+    
     public init(
         content: MessageContent,
         model: String,
         role: Role,
         stopReason: String? = nil,
-        meta: [String: DynamicValue]? = nil
+        meta: ResultMetadata? = nil
     ) {
         self.content = content
         self.model = model
         self.role = role
         self.stopReason = stopReason
-        self.meta = meta
+        self._meta = meta
     }
 }

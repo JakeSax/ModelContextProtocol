@@ -8,7 +8,14 @@
 /// A non-distinct result type that allows for additional metadata in responses. It must
 /// reserve the key `_meta` to allow clients and servers to attach additional metadata
 /// to their results/notifications.
-public typealias Result = OldParameters
+public protocol Result: Codable, Sendable {
+    /// This property is reserved by MCP to allow clients and servers to attach
+    /// additional metadata to their messages.
+    var _meta: ResultMetadata? { get }
+}
+public typealias ResultMetadata = [String: DynamicValue]
+
+public typealias AnyResult = [String: DynamicValue]
 
 /// Empty result type
-public typealias EmptyResult = Result
+public typealias EmptyResult = AnyResult

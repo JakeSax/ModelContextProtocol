@@ -34,21 +34,15 @@ public struct ReadResourceRequest: Request {
 
 
 /// The server's response to a resources/read request from the client.
-public struct ReadResourceResult: Codable, Sendable {
+public struct ReadResourceResult: Result {
     /// The contents of the resource
     public let contents: [ResourceContents]
     
-    /// Additional metadata attached to the response
-    public let meta: OldParameters?
+    public let _meta: ResultMetadata?
     
-    private enum CodingKeys: String, CodingKey {
-        case meta = "meta"
-        case contents
-    }
-    
-    public init(contents: [ResourceContents], meta: OldParameters? = nil) {
-        self.meta = meta
+    public init(contents: [ResourceContents], meta: ResultMetadata? = nil) {
         self.contents = contents
+        self._meta = meta
     }
 }
 

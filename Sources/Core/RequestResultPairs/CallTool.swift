@@ -53,9 +53,7 @@ public struct CallToolRequest: Request {
 /// However, any errors in _finding_ the tool, an error indicating that the
 /// server does not support tool calls, or any other exceptional conditions,
 /// should be reported as an MCP error response.
-public struct CallToolResult: Codable, Sendable {
-    /// Additional metadata attached to the response
-    public let meta: OldParameters?
+public struct CallToolResult: Result {
     
     /// Content returned by the tool
     public let content: [MessageContent]
@@ -63,19 +61,16 @@ public struct CallToolResult: Codable, Sendable {
     /// Whether the tool call ended in an error
     public let isError: Bool?
     
+    public let _meta: ResultMetadata?
+    
     public init(
-        meta: OldParameters? = nil,
         content: [MessageContent],
-        isError: Bool? = nil
+        isError: Bool? = nil,
+        meta: ResultMetadata? = nil
     ) {
-        self.meta = meta
         self.content = content
         self.isError = isError
+        self._meta = meta
     }
     
-    private enum CodingKeys: String, CodingKey {
-        case meta = "_meta"
-        case content
-        case isError
-    }
 }

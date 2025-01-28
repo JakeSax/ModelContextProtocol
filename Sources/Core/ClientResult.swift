@@ -22,7 +22,7 @@
 /// ```
 public enum ClientResult: Codable, Sendable {
     
-    case result(Result)
+    case result(AnyResult)
     case createMessage(CreateMessageResult)
     case listRoots(ListRootsResult)
     
@@ -33,7 +33,7 @@ public enum ClientResult: Codable, Sendable {
             self = .createMessage(createMessage)
         } else if let listRoots = try? container.decode(ListRootsResult.self) {
             self = .listRoots(listRoots)
-        } else if let result = try? container.decode(Result.self) {
+        } else if let result = try? container.decode(AnyResult.self) {
             self = .result(result)
         } else {
             throw DecodingError.dataCorruptedError(

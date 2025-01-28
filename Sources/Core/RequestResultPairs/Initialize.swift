@@ -46,7 +46,7 @@ public struct InitializeRequest: Request {
 }
 
 /// Server's response to client's initialize request
-public struct InitializeResult: Codable, Sendable {
+public struct InitializeResult: Result {
     /// Server's supported capabilities
     public let capabilities: ServerCapabilities
     
@@ -59,20 +59,19 @@ public struct InitializeResult: Codable, Sendable {
     /// Usage instructions for server features. May be used to enhance LLM understanding.
     public let instructions: String?
     
-    /// Additional metadata attached to the response
-    public let metadata: Result?
+    public let _meta: ResultMetadata?
     
     public init(
         capabilities: ServerCapabilities,
         protocolVersion: String,
         serverInfo: Implementation,
         instructions: String? = nil,
-        metadata: Result? = nil
+        meta: ResultMetadata? = nil
     ) {
         self.capabilities = capabilities
         self.protocolVersion = protocolVersion
         self.serverInfo = serverInfo
         self.instructions = instructions
-        self.metadata = metadata
+        self._meta = meta
     }
 }

@@ -33,25 +33,23 @@ public struct GetPromptRequest: Request {
 }
 
 /// The server's response to a `prompts/get` request from the client.
-public struct GetPromptResult: Codable, Sendable {
-    /// An optional description for the prompt.
+public struct GetPromptResult: Result {
+    
     public let messages: [PromptMessage]
+    
+    /// An optional description for the prompt.
     public let description: String?
-    public let meta: OldParameters?
+    
+    public let _meta: ResultMetadata?
     
     public init(
-        meta: [String: DynamicValue]? = nil,
         messages: [PromptMessage],
-        description: String? = nil
+        description: String? = nil,
+        meta: ResultMetadata? = nil
     ) {
-        self.meta = meta
         self.messages = messages
         self.description = description
+        self._meta = meta
     }
     
-    private enum CodingKeys: String, CodingKey {
-        case meta = "_meta"
-        case messages
-        case description
-    }
 }

@@ -20,9 +20,7 @@ public struct ListPromptsRequest: PaginatableRequest {
 }
 
 /// The server's response to a prompts/list request.
-public struct ListPromptsResult: Codable, Sendable {
-    /// Reserved metadata field for additional response information.
-    public let meta: OldParameters?
+public struct ListPromptsResult: Result {
     
     /// Token representing the pagination position after the last result.
     /// If present, more results may be available.
@@ -31,10 +29,12 @@ public struct ListPromptsResult: Codable, Sendable {
     /// The list of returned prompts.
     public let prompts: [Prompt]
     
-    public init(meta: OldParameters? = nil, nextCursor: String? = nil, prompts: [Prompt]) {
-        self.meta = meta
+    public let _meta: ResultMetadata?
+    
+    public init(nextCursor: String? = nil, prompts: [Prompt], meta: ResultMetadata? = nil) {
         self.nextCursor = nextCursor
         self.prompts = prompts
+        self._meta = meta
     }
 }
 

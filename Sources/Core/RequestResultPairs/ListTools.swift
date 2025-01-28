@@ -19,7 +19,7 @@ public struct ListToolsRequest: PaginatableRequest {
 }
 
 /// The response containing available tools from the server
-public struct ListToolsResult: Codable, Sendable {
+public struct ListToolsResult: Result {
     
     /// Token for accessing the next page of results
     public let nextCursor: String?
@@ -27,12 +27,11 @@ public struct ListToolsResult: Codable, Sendable {
     /// Array of available tools
     public let tools: [Tool]
     
-    /// Additional metadata attached to the response
-    public let meta: OldParameters?
+    public let _meta: ResultMetadata?
     
-    public init(tools: [Tool], nextCursor: String? = nil, meta: OldParameters? = nil) {
+    public init(tools: [Tool], nextCursor: String? = nil, meta: ResultMetadata? = nil) {
         self.tools = tools
         self.nextCursor = nextCursor
-        self.meta = meta
+        self._meta = meta
     }
 }

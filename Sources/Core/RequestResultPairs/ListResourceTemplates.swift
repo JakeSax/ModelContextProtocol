@@ -20,7 +20,7 @@ public struct ListResourceTemplatesRequest: PaginatableRequest {
 }
 
 /// The server's response to a resources/templates/list request.
-public struct ListResourceTemplatesResult: Codable, Sendable {
+public struct ListResourceTemplatesResult: Result {
     
     /// Token representing the pagination position after the last result.
     /// If present, more results may be available.
@@ -29,16 +29,15 @@ public struct ListResourceTemplatesResult: Codable, Sendable {
     /// The list of returned resource templates.
     public let resourceTemplates: [ResourceTemplate]
     
-    /// Reserved metadata field for additional response information.
-    public let meta: OldParameters?
+    public let _meta: ResultMetadata?
     
     public init(
         nextCursor: String? = nil,
         resourceTemplates: [ResourceTemplate],
-        meta: [String: DynamicValue]? = nil
+        meta: ResultMetadata? = nil
     ) {
         self.nextCursor = nextCursor
         self.resourceTemplates = resourceTemplates
-        self.meta = meta
+        self._meta = meta
     }
 }
