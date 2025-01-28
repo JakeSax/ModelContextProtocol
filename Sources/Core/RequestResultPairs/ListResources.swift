@@ -51,10 +51,10 @@ public struct ResourceListChangedNotification: AnyServerNotification {
     /// The method identifier for this notification.
     public let method: ServerNotification.Method
     
-    public var params: OldParameters?
+    public var params: DefaultNotificationParameters
     
-    public init(params: OldParameters? = nil) {
-        self.params = params
+    public init(params: DefaultNotificationParameters = .init()) {
         self.method = Self.method
+        self.params = params
     }
 }

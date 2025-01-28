@@ -11,15 +11,17 @@ public protocol Request<MethodIdentifier>: Codable, Sendable {
     /// The type of identifier for the method.
     associatedtype MethodIdentifier: AnyMethodIdentifier
     
-    associatedtype Parameters: RequestParameters
-    
     /// The method identifier for the request.
     var method: MethodIdentifier { get }
+    
+    /// The parameters that may be included in this request.
+    associatedtype Parameters: RequestParameters
     
     /// The parameters for the request.
     var params: Parameters { get }
 }
 
+/// The parameters that may be inclued in a ``Request``.
 public protocol RequestParameters: Codable, Sendable {
     /// This parameter name is reserved by MCP to allow clients and servers to attach
     /// additional metadata to their messages.
@@ -113,34 +115,34 @@ public struct DefaultRequestParameters: RequestParameters {
 }
 
 
-extension OldParameters: RequestParameters {
-    
-    public var _meta: RequestMetadata? {
-        guard let metadata = self["_meta"] else {
-            return nil
-        }
-        switch metadata {
-        case .dictionary(let dictionary):
-            return switch dictionary["progressToken"] {
-            case .string(let string): RequestMetadata(progressToken: .string(string))
-            case .int(let int): RequestMetadata(progressToken: .int(int))
-            default: nil
-            }
-        default: return nil
-        }
-    }
-//    public var progressToken: ProgressToken? {
+//extension OldParameters: RequestParameters {
+//    
+//    public var _meta: RequestMetadata? {
 //        guard let metadata = self["_meta"] else {
 //            return nil
 //        }
 //        switch metadata {
 //        case .dictionary(let dictionary):
 //            return switch dictionary["progressToken"] {
-//            case .int(let int): .int(int)
-//            case .string(let string): .string(string)
+//            case .string(let string): RequestMetadata(progressToken: .string(string))
+//            case .int(let int): RequestMetadata(progressToken: .int(int))
 //            default: nil
 //            }
 //        default: return nil
 //        }
 //    }
-}
+////    public var progressToken: ProgressToken? {
+////        guard let metadata = self["_meta"] else {
+////            return nil
+////        }
+////        switch metadata {
+////        case .dictionary(let dictionary):
+////            return switch dictionary["progressToken"] {
+////            case .int(let int): .int(int)
+////            case .string(let string): .string(string)
+////            default: nil
+////            }
+////        default: return nil
+////        }
+////    }
+//}

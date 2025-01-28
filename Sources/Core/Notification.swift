@@ -5,15 +5,28 @@
 //  Created by Jake Sax on 1/27/25.
 //
 
-/// Base Notification type for MCP protocol.
-public protocol Notification<MethodIdentifier>: Codable, Sendable {
+/// Base Notification requirements for MCP protocol.
+public protocol Notification<MethodIdentifier>: MethodIdentified {
     
-    /// The type of identifier for the method.
-    associatedtype MethodIdentifier: AnyMethodIdentifier
-    
-    /// The method identifier for the request.
-    var method: MethodIdentifier { get }
-    
-    /// The parameters for the request.
-    var params: OldParameters? { get }
+    /// The parameters that may be included with a notification.
+    associatedtype Parameters: NotificationParameters
+    /// The parameters for the notification.
+    var params: Parameters { get }
+}
+
+public protocol NotificationParameters: Codable, Sendable {
+    /// This parameter name is reserved by MCP to allow clients and servers to attach
+    /// additional metadata to their messages.
+    var _meta: [String: DynamicValue]? { get }
+}
+
+public typealias DefaultNotificationParameters = [String: DynamicValue]
+
+extension DefaultNotificationParameters: NotificationParameters {
+    public var _meta: [String : DynamicValue]? {
+        switch self["_meta"] {
+        case .dictionary(let dictionary): dictionary
+        default: nil
+        }
+    }
 }

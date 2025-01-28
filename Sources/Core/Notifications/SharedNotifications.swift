@@ -11,9 +11,9 @@
 public struct ProgressNotification: AnyClientNotification {
     public static let method = ClientNotification.Method.progress
     public let method: ClientNotification.Method
-    public let params: Params
+    public let params: Parameters
     
-    public struct Params: Codable, Sendable {
+    public struct Parameters: NotificationParameters {
         /// The progress thus far. This should increase every time progress is made,
         ///  even if the total is unknown.
         public let progress: Double
@@ -23,8 +23,13 @@ public struct ProgressNotification: AnyClientNotification {
         /// Total number of items to process (or total progress required), if known.
         public let total: Double?
         
-        private enum CodingKeys: String, CodingKey {
-            case progress, progressToken, total
+        public let _meta: [String: DynamicValue]?
+        
+        init(progress: Double, progressToken: ProgressToken, total: Double?, meta: [String : DynamicValue]? = nil) {
+            self.progress = progress
+            self.progressToken = progressToken
+            self.total = total
+            self._meta = meta
         }
     }
     
@@ -32,7 +37,7 @@ public struct ProgressNotification: AnyClientNotification {
         case method, params
     }
     
-    public init(params: Params) {
+    public init(params: Parameters) {
         self.method = Self.method
         self.params = params
     }
@@ -54,7 +59,7 @@ public struct CancelledNotification: AnyClientNotification {
     public let method: ClientNotification.Method
     public let params: Parameters
     
-    public struct Parameters: Codable, Sendable {
+    public struct Parameters: NotificationParameters {
         /// The ID of the request to cancel.
         ///
         /// This MUST correspond to the ID of a request previously issued
@@ -64,9 +69,12 @@ public struct CancelledNotification: AnyClientNotification {
         /// MAY be logged or presented to the user.
         public let reason: String?
         
-        public init(requestID: RequestID, reason: String? = nil) {
+        public let _meta: [String: DynamicValue]?
+        
+        public init(requestID: RequestID, reason: String? = nil, meta: [String: DynamicValue]? = nil) {
             self.requestId = requestID
             self.reason = reason
+            self._meta = meta
         }
     }
     

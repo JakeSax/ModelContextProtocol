@@ -6,7 +6,7 @@
 //
 
 /// A Notification identified by a ``ServerNotification.Method`` in its `method` property.
-public protocol AnyServerNotification: MethodIdentified where MethodIdentifier == ServerNotification.Method {
+public protocol AnyServerNotification: Notification where MethodIdentifier == ServerNotification.Method {
 }
 
 /// An enumeration of all the possible server notifications.
@@ -87,10 +87,10 @@ public struct LoggingMessageNotification: AnyServerNotification {
     /// The method identifier for logging notifications
     public let method: ServerNotification.Method
     
-    public let params: Params
+    public let params: Parameters
     
     /// Parameters containing the log message details
-    public struct Params: Codable, Sendable {
+    public struct Parameters: NotificationParameters {
         /// The log message content
         public let data: DynamicValue
         
@@ -100,16 +100,24 @@ public struct LoggingMessageNotification: AnyServerNotification {
         /// Optional name of the logger
         public let logger: String?
         
-        public init(data: DynamicValue, level: LoggingLevel, logger: String? = nil) {
+        public let _meta: [String: DynamicValue]?
+        
+        public init(
+            data: DynamicValue,
+            level: LoggingLevel,
+            logger: String? = nil,
+            meta: [String: DynamicValue]? = nil
+        ) {
             self.data = data
             self.level = level
             self.logger = logger
+            self._meta = meta
         }
     }
     
     
-    public init(params: Params) {
-        self.params = params
+    public init(params: Parameters) {
         self.method = Self.method
+        self.params = params
     }
 }

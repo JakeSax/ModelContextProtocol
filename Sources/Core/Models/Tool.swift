@@ -41,10 +41,10 @@ public struct Tool: Codable, Sendable {
 public struct ToolListChangedNotification: AnyServerNotification {
     public static let method: ServerNotification.Method = .toolListChanged
     public let method: ServerNotification.Method
-    public let params: OldParameters?
+    public let params: DefaultNotificationParameters
     
-    public init(params: OldParameters? = nil) {
-        self.method = .toolListChanged
+    public init(params: DefaultNotificationParameters = .init()) {
+        self.method = Self.method
         self.params = params
     }
 }

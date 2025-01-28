@@ -126,21 +126,24 @@ public struct ResourceUpdatedNotification: AnyServerNotification {
     /// The method identifier for this notification.
     public let method: ServerNotification.Method
     
+    public var params: Parameters
+    
     /// Parameters for the resource update notification.
-    public struct Params: Codable, Sendable {
+    public struct Parameters: NotificationParameters {
         /// The URI of the resource that has been updated.
         /// This might be a sub-resource of the one that the client actually subscribed to.
         public var uri: String
         
-        public init(uri: String) {
+        public let _meta: [String: DynamicValue]?
+        
+        public init(uri: String, meta: [String: DynamicValue]? = nil) {
             self.uri = uri
+            self._meta = meta
         }
     }
     
-    public var params: Params
-    
-    public init(params: Params) {
-        self.params = params
+    public init(params: Parameters) {
         self.method = Self.method
+        self.params = params
     }
 }

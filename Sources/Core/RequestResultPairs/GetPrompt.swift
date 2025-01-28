@@ -6,7 +6,7 @@
 //
 
 /// Request to get a prompt from the server
-public struct GetPromptRequest: Codable, Sendable {
+public struct GetPromptRequest: Request {
     public let method: ClientRequest.Method
     public let params: Parameters
     

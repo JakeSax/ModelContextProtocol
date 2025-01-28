@@ -6,7 +6,7 @@
 //
 
 /// A Notification identified by a ``ClientNotification.Method`` in its `method` property.
-public protocol AnyClientNotification: MethodIdentified where MethodIdentifier == ClientNotification.Method {}
+public protocol AnyClientNotification: Notification where MethodIdentifier == ClientNotification.Method {}
 
 /// Represents all possible client notifications
 public enum ClientNotification: Codable, Sendable {
@@ -56,14 +56,13 @@ public enum ClientNotification: Codable, Sendable {
     
 }
 
-
 /// Notification sent after initialization is complete
 public struct InitializedNotification: AnyClientNotification {
     public static let method: ClientNotification.Method = .initialized
     public let method: ClientNotification.Method
-    public let params: OldParameters?
+    public let params: DefaultNotificationParameters
     
-    public init(params: OldParameters? = nil) {
+    public init(params: DefaultNotificationParameters = .init()) {
         self.method = Self.method
         self.params = params
     }
