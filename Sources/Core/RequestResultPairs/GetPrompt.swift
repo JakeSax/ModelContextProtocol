@@ -7,6 +7,9 @@
 
 /// Request to get a prompt from the server
 public struct GetPromptRequest: Request {
+    
+    public static let method: ClientRequest.Method = .getPrompt
+    
     public let method: ClientRequest.Method
     public let params: Parameters
     
@@ -27,8 +30,8 @@ public struct GetPromptRequest: Request {
     }
     
     public init(params: Parameters) {
+        self.method = Self.method
         self.params = params
-        self.method = .getPrompt
     }
 }
 

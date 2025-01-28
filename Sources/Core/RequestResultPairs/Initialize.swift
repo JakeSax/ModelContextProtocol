@@ -7,6 +7,9 @@
 
 /// Request sent from client to server when first connecting to begin initialization.
 public struct InitializeRequest: Request {
+    
+    public static let method: ClientRequest.Method = .initialize
+    
     /// Initialize method identifier
     public let method: ClientRequest.Method
     
@@ -40,8 +43,8 @@ public struct InitializeRequest: Request {
     }
     
     public init(params: Parameters) {
+        self.method = Self.method
         self.params = params
-        self.method = .initialize
     }
 }
 

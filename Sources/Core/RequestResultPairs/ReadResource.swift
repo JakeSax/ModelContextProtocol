@@ -7,6 +7,9 @@
 
 /// A request to read a specific resource URI.
 public struct ReadResourceRequest: Request {
+    
+    public static let method: ClientRequest.Method = .readResource
+    
     /// The method identifier for the request
     public let method: ClientRequest.Method
     
@@ -14,7 +17,7 @@ public struct ReadResourceRequest: Request {
     public let params: ReadResourceParams
     
     public init(params: ReadResourceParams) {
-        self.method = .readResource
+        self.method = Self.method
         self.params = params
     }
     

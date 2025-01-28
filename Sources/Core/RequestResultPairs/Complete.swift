@@ -7,6 +7,9 @@
 
 /// A request from the client to the server, to ask for completion options.
 public struct CompleteRequest: Request {
+    
+    public static let method: ClientRequest.Method = .complete
+    
     /// The method identifier for completion requests
     public let method: ClientRequest.Method
     
@@ -14,8 +17,8 @@ public struct CompleteRequest: Request {
     public let params: Parameters
     
     init(params: Parameters) {
+        self.method = Self.method
         self.params = params
-        self.method = .complete
     }
     
     /// Parameters for a completion request

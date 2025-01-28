@@ -7,6 +7,9 @@
 
 /// A request to retrieve available resources from the server.
 public struct ListResourcesRequest: PaginatedRequest {
+    
+    public static let method: ClientRequest.Method = .listResources
+    
     /// The API method identifier.
     public let method: ClientRequest.Method
     
@@ -14,8 +17,8 @@ public struct ListResourcesRequest: PaginatedRequest {
     public let params: PaginationParameters
     
     public init(params: PaginationParameters = PaginationParameters()) {
+        self.method = Self.method
         self.params = params
-        self.method = .listResources
     }
 }
 
@@ -45,7 +48,9 @@ public struct ListResourcesResult: PaginatedResult {
 /// it can read from has changed. This may be issued by servers without any previous subscription
 /// from the client.
 public struct ResourceListChangedNotification: AnyServerNotification {
+    
     public static let method: ServerNotification.Method = .resourceListChanged
+    
     /// The method identifier for this notification.
     public let method: ServerNotification.Method
     

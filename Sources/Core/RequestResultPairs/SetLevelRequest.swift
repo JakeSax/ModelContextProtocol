@@ -7,6 +7,9 @@
 
 /// Request to enable or adjust logging
 public struct SetLevelRequest: Request {
+    
+    public static let method: ClientRequest.Method = .setLevel
+    
     public let method: ClientRequest.Method
     public let params: LoggingParameters
     
@@ -23,7 +26,7 @@ public struct SetLevelRequest: Request {
     }
     
     init(params: LoggingParameters) {
-        self.method = .setLevel
+        self.method = Self.method
         self.params = params
     }
 }

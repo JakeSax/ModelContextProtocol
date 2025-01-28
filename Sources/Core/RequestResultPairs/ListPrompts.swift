@@ -7,6 +7,9 @@
 
 /// A request to retrieve available prompts and prompt templates from the server.
 public struct ListPromptsRequest: PaginatedRequest {
+    
+    public static let method: ClientRequest.Method = .listPrompts
+    
     /// The API method identifier.
     public let method: ClientRequest.Method
     
@@ -14,7 +17,7 @@ public struct ListPromptsRequest: PaginatedRequest {
     public let params: PaginationParameters
     
     public init(params: PaginationParameters = PaginationParameters()) {
-        self.method = .listPrompts
+        self.method = Self.method
         self.params = params
     }
 }
@@ -45,7 +48,9 @@ public struct ListPromptsResult: PaginatedResult {
 /// An optional notification from the server to the client, informing it that the list of prompts
 /// it offers has changed. This may be issued by servers without any previous subscription from the client.
 public struct PromptListChangedNotification: AnyServerNotification {
+    
     public static let method: ServerNotification.Method = .promptListChanged
+    
     /// The method identifier for the notification
     public let method: ServerNotification.Method
     

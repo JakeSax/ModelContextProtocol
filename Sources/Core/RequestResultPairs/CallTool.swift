@@ -8,12 +8,21 @@
 /// Used by the client to invoke a tool provided by the server.
 public struct CallToolRequest: Request {
     
+    // MARK: Static Properties
+    public static let method: ClientRequest.Method = .callTool
+    
     // MARK: Properties
     /// The method identifier for tool calls
     public let method: ClientRequest.Method
     
     /// Parameters for the tool call
     public let params: Parameters
+    
+    // MARK: Initialization
+    public init(params: Parameters) {
+        self.method = Self.method
+        self.params = params
+    }
     
     // MARK: Data Structures
     public struct Parameters: RequestParameters {
@@ -34,12 +43,6 @@ public struct CallToolRequest: Request {
             self.arguments = arguments
             self._meta = meta
         }
-    }
-    
-    // MARK: Initialization
-    public init(params: Parameters) {
-        self.params = params
-        self.method = .callTool
     }
 }
 
@@ -72,5 +75,4 @@ public struct CallToolResult: Result {
         self.isError = isError
         self._meta = meta
     }
-    
 }

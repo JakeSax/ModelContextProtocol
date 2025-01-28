@@ -7,6 +7,9 @@
 
 /// A request to retrieve available resource templates from the server.
 public struct ListResourceTemplatesRequest: PaginatedRequest {
+    
+    public static let method: ClientRequest.Method = .listResourceTemplates
+    
     /// The API method identifier.
     public let method: ClientRequest.Method
     
@@ -14,8 +17,8 @@ public struct ListResourceTemplatesRequest: PaginatedRequest {
     public let params: PaginationParameters
     
     public init(params: PaginationParameters = PaginationParameters()) {
+        self.method = Self.method
         self.params = params
-        self.method = .listResourceTemplates
     }
 }
 

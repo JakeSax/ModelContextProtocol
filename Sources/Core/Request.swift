@@ -6,13 +6,7 @@
 //
 
 /// Base request type for MCP protocol.
-public protocol Request<MethodIdentifier>: Codable, Sendable {
-    
-    /// The type of identifier for the method.
-    associatedtype MethodIdentifier: AnyMethodIdentifier
-    
-    /// The method identifier for the request.
-    var method: MethodIdentifier { get }
+public protocol Request<MethodIdentifier>: MethodIdentified {
     
     /// The parameters that may be included in this request.
     associatedtype Parameters: RequestParameters
