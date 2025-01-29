@@ -5,6 +5,8 @@
 //  Created by Jake Sax on 1/28/25.
 //
 
+import Foundation
+
 /// A request that expects a response.
 public struct JSONRPCRequest: AnyJSONRPCMessage, Equatable {
     

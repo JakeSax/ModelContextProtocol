@@ -5,6 +5,8 @@
 //  Created by Jake Sax on 1/28/25.
 //
 
+import Foundation
+
 /// A successful (non-error) response to a request.
 public struct JSONRPCResponse: AnyJSONRPCMessage, Equatable {
     

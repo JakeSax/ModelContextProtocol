@@ -9,7 +9,7 @@ let package = Package(
         .macOS(.v13), .iOS(.v16)
     ],
     products: [
-        // Users can import just Core, or choose Client or Server as well.
+        // Users can import just MCPCore, or choose MCPClient or MCPServer as well.
         .library(
             name: "MCPCore",
             targets: ["MCPCore"]

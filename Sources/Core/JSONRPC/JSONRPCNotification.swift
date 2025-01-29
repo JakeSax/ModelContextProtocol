@@ -5,6 +5,8 @@
 //  Created by Jake Sax on 1/28/25.
 //
 
+import Foundation
+
 /// A notification which does not expect a response.
 public struct JSONRPCNotification: AnyJSONRPCMessage, Equatable {
     
