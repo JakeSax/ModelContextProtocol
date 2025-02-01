@@ -118,6 +118,7 @@ public struct SubscribeRequest: AnyClientRequest {
     
     // MARK: Static Properties
     static public let method: ClientRequest.Method = .subscribe
+    public typealias Response = EmptyResult
     
     // MARK: Properties
     public let method: ClientRequest.Method
@@ -156,6 +157,7 @@ public struct UnsubscribeRequest: AnyClientRequest {
     
     // MARK: Static Properties
     static public let method: ClientRequest.Method = .unsubscribe
+    public typealias Response = EmptyResult
     
     // MARK: Properties
     public let method: ClientRequest.Method

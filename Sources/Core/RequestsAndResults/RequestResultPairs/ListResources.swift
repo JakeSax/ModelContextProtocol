@@ -9,6 +9,7 @@
 public struct ListResourcesRequest: PaginatedRequest {
     
     public static let method: ClientRequest.Method = .listResources
+    public typealias Response = ListResourcesResult
     
     /// The API method identifier.
     public let method: ClientRequest.Method

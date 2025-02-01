@@ -9,6 +9,7 @@
 public struct ListResourceTemplatesRequest: PaginatedRequest {
     
     public static let method: ClientRequest.Method = .listResourceTemplates
+    public typealias Response = ListResourceTemplatesResult
     
     /// The API method identifier.
     public let method: ClientRequest.Method

@@ -10,6 +10,7 @@ public struct CompleteRequest: Request {
     
     // MARK: Static Properties
     public static let method: ClientRequest.Method = .complete
+    public typealias Response = CompleteResult
     
     // MARK: Properties
     /// The method identifier for completion requests

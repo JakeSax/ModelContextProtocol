@@ -10,6 +10,7 @@ public struct CallToolRequest: Request {
     
     // MARK: Static Properties
     public static let method: ClientRequest.Method = .callTool
+    public typealias Response = CallToolResult
     
     // MARK: Properties
     /// The method identifier for tool calls

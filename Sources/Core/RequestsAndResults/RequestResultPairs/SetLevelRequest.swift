@@ -10,6 +10,7 @@ public struct SetLevelRequest: Request {
     
     // MARK: Static Properties
     public static let method: ClientRequest.Method = .setLevel
+    public typealias Response = EmptyResult
     
     // MARK: Properties
     public let method: ClientRequest.Method

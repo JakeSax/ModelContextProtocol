@@ -9,6 +9,7 @@
 public struct ListPromptsRequest: PaginatedRequest {
     
     public static let method: ClientRequest.Method = .listPrompts
+    public typealias Response = ListPromptsResult
     
     /// The API method identifier.
     public let method: ClientRequest.Method

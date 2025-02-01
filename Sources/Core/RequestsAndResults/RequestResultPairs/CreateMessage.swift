@@ -10,7 +10,10 @@
 /// before beginning sampling, to allow them to inspect the request (human in
 /// the loop) and decide whether to approve it.
 public struct CreateMessageRequest: Request {
+    
+    // MARK: Static Properties
     public static let method: ServerRequest.Method = .createMessage
+    public typealias Response = CreateMessageResult
     
     // MARK: Properties
     public let method: ServerRequest.Method

@@ -10,6 +10,7 @@ public struct InitializeRequest: Request {
     
     // MARK: Static Properties
     public static let method: ClientRequest.Method = .initialize
+    public typealias Response = InitializeResult
     
     // MARK: Properties
     /// Initialize method identifier

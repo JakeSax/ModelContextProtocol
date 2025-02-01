@@ -9,6 +9,7 @@
 public struct ReadResourceRequest: Request {
     
     public static let method: ClientRequest.Method = .readResource
+    public typealias Response = ReadResourceResult
     
     /// The method identifier for the request
     public let method: MethodIdentifier

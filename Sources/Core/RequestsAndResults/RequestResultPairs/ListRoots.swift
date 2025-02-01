@@ -18,6 +18,7 @@ public struct ListRootsRequest: Request {
     
     // MARK: Static Properties
     public static let method: ServerRequest.Method = .listRoots
+    public typealias Response = ListRootsResult
     
     // MARK: Properties
     /// The method identifier for the roots/list request

@@ -9,6 +9,7 @@
 public struct ListToolsRequest: PaginatedRequest {
     
     public static let method: ClientRequest.Method = .listTools
+    public typealias Response = ListToolsResult
     
     /// The method identifier for the tools/list request
     public let method: ClientRequest.Method

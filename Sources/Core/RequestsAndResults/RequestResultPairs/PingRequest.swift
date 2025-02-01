@@ -9,7 +9,9 @@
 /// The receiver must promptly respond, or else may be disconnected.
 public struct PingRequest: AnyServerRequest {
     
+    // MARK: Static Properties
     public static let method: ServerRequest.Method = .ping
+    public typealias Response = EmptyResult
     
     // MARK: Properties
     public let method: ServerRequest.Method

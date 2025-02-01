@@ -16,6 +16,9 @@ public protocol Request<MethodIdentifier>: MethodIdentified, Equatable {
     
     /// Creates a Request with the given parameters.
     init(params: Parameters)
+    
+    /// The ``Result`` that is expected as a response to this request.
+    associatedtype Response: MCPCore.Result
 }
 
 /// The parameters that may be inclued in a ``Request``.

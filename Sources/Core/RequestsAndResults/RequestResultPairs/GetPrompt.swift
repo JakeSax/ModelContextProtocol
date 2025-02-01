@@ -7,9 +7,10 @@
 
 /// Request to get a prompt from the server
 public struct GetPromptRequest: Request {
-    
+        
     // MARK: Static Properties
     public static let method: ClientRequest.Method = .getPrompt
+    public typealias Response = GetPromptResult
     
     // MARK: Properties
     public let method: ClientRequest.Method

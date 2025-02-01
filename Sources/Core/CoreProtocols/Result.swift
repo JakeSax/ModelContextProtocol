@@ -17,5 +17,8 @@ public typealias ResultMetadata = [String: DynamicValue]
 
 public typealias AnyResult = [String: DynamicValue]
 
+extension AnyResult: Result {}
+
 /// Empty result type
 public typealias EmptyResult = AnyResult
+
