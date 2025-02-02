@@ -1,5 +1,5 @@
 //
-//  SSETransport.swift
+//  SSEClientTransport.swift
 //  ModelContextProtocol
 //
 //  Created by Jake Sax on 2/2/25.
@@ -7,79 +7,6 @@
 
 import Foundation
 import OSLog
-
-/// A transport implementation using Server-Sent Events (SSE) for remote communication.
-///
-/// This transport is useful for streaming messages over HTTP to a client,
-/// maintaining a persistent connection for real-time updates.
-//actor SSETransport: TransportProtocol {
-//
-//    /// The URL of the SSE server endpoint.
-//    private let url: URL
-//
-//    /// The active task handling message reception.
-//    private var receiveTask: Task<Void, Never>?
-//
-//    /// Initializes an SSE transport with the given server URL.
-//    ///
-//    /// - Parameter url: The URL of the SSE server to connect to.
-//    init(url: URL) {
-//        self.url = url
-//    }
-//
-//    /// Sends a message using SSE (not typically supported in a standard SSE setup).
-//    ///
-//    /// - Parameter message: The message to be sent as a `String`.
-//    /// - Note: SSE is primarily a **server-to-client** streaming protocol.
-//    ///   Sending messages may require an alternative mechanism, such as WebSockets or HTTP POST.
-//    func send(_ message: String) async {
-//        print("SSETransport does not support direct message sending.")
-//    }
-//
-//    /// Returns an asynchronous stream of messages received from the SSE server.
-//    ///
-//    /// - Returns: An `AsyncStream<String>` that emits incoming SSE events.
-//    /// - Important: The stream starts an HTTP connection that remains open
-//    ///   until canceled or the server closes the connection.
-//    func receive() -> AsyncStream<String> {
-//        AsyncStream { continuation in
-//            receiveTask = Task {
-//                await startSSEListening(continuation: continuation)
-//            }
-//        }
-//    }
-//
-//    /// Establishes an SSE connection and listens for incoming events.
-//    ///
-//    /// - Parameter continuation: The `AsyncStream.Continuation` to emit received messages.
-//    private func startSSEListening(continuation: AsyncStream<String>.Continuation) async {
-//        var request = URLRequest(url: url)
-//        request.setValue("text/event-stream", forHTTPHeaderField: "Accept")
-//
-//        do {
-//            let (stream, _) = try await URLSession.shared.bytes(for: request)
-//            for try await line in stream.lines {
-//                if !line.isEmpty {
-//                    continuation.yield(line)
-//                }
-//            }
-//            continuation.finish()
-//        } catch {
-//            print("SSE connection failed: \(error)")
-//            continuation.finish()
-//        }
-//    }
-//
-//    /// Cleans up the background task when the transport is deallocated.
-//    ///
-//    /// - Important: Ensures that the SSE listening task does not persist
-//    ///   after the transport instance is released.
-//    deinit {
-//        receiveTask?.cancel()
-//    }
-//}
-
-
 
 /// A concrete implementation of `MCPTransport` providing Server-Sent Events (SSE) support.
 ///
@@ -302,7 +229,6 @@ public actor SSEClientTransport: TransportProtocol, RetryableTransport {
             }
         }
         
-        
         // If there's leftover data in the buffer, handle it
         if !dataBuffer.isEmpty {
             try await handleSSEEvent(type: eventType, id: eventID, data: dataBuffer)
@@ -312,14 +238,6 @@ public actor SSEClientTransport: TransportProtocol, RetryableTransport {
         messagesContinuation?.finish()
         state = .disconnected
         logger.debug("SSE stream ended gracefully.")
-    }
-    
-    private func handleRetryLine(_ line: String) {
-        if let ms = parseRetry(line) {
-            configuration.retryPolicy.baseDelay = .milliseconds(ms)
-        } else {
-            logger.warning("Failed to apply retry delay from SSE server: \(line)")
-        }
     }
     
     private func handleSSEError(_ error: Error) {
@@ -333,74 +251,6 @@ public actor SSEClientTransport: TransportProtocol, RetryableTransport {
             messagesContinuation?.finish(throwing: error)
         }
     }
-    
-//    private func runSSEReadLoopOld() async {
-//        let endpoint = sseURL
-//        do {
-//            var request = URLRequest(url: endpoint)
-//            request.timeoutInterval = configuration.connectTimeout.timeInterval
-//            request.setValue("text/event-stream", forHTTPHeaderField: "Accept")
-//            
-//            let (byteStream, response) = try await session.bytes(for: request)
-//            try validateHTTPResponse(response)
-//            
-//            state = .connected
-//            logger.info(
-//                "SSEClientTransport connected to \(endpoint.absoluteString, privacy: .private).")
-//            
-//            // Accumulate lines into SSE events
-//            var dataBuffer = Data()
-//            var eventType = "message"
-//            var eventID: String?
-//            
-//            for try await line in byteStream.allLines {
-//                guard !Task.isCancelled else { break }
-//                
-//                if line.isEmpty {
-//                    // End of an SSE event
-//                    try await handleSSEEvent(type: eventType, id: eventID, data: dataBuffer)
-//                    dataBuffer.removeAll()
-//                    eventType = "message"
-//                    eventID = nil
-//                } else if line.hasPrefix("event:") {
-//                    eventType = String(line.dropFirst(6)).trimmingCharacters(in: .whitespaces)
-//                } else if line.hasPrefix("data:") {
-//                    let text = String(line.dropFirst(5)).trimmingCharacters(in: .whitespaces)
-//                    if let chunk = text.data(using: .utf8) {
-//                        dataBuffer.append(chunk)
-//                    }
-//                } else if line.hasPrefix("id:") {
-//                    eventID = String(line.dropFirst(3)).trimmingCharacters(in: .whitespaces)
-//                } else if line.hasPrefix("retry:") {
-//                    if let ms = parseRetry(line) {
-//                        configuration.retryPolicy.baseDelay = .milliseconds(ms)
-//                    } else {
-//                        logger.warning("Failed to apply retry delay from SSE server: \(line)")
-//                    }
-//                } else {
-//                    logger.debug("SSEClientTransport ignoring unknown line: \(line)")
-//                }
-//            }
-//            
-//            // If there's leftover data in the buffer, handle it
-//            if !dataBuffer.isEmpty {
-//                try await handleSSEEvent(type: eventType, id: eventID, data: dataBuffer)
-//            }
-//            
-//            // SSE stream ended gracefully
-//            messagesContinuation?.finish()
-//            state = .disconnected
-//            logger.debug("SSE stream ended gracefully.")
-//        } catch is CancellationError {
-//            logger.debug("SSE read loop cancelled.")
-//            state = .disconnected
-//            messagesContinuation?.finish()
-//        } catch {
-//            logger.error("SSE read loop failed with error: \(error.localizedDescription)")
-//            state = .failed(error: error)
-//            messagesContinuation?.finish(throwing: error)
-//        }
-//    }
     
     /// Parse and handle a single SSE event upon encountering a blank line.
     private func handleSSEEvent(type: String, id _: String?, data: Data) async throws {
@@ -435,7 +285,6 @@ public actor SSEClientTransport: TransportProtocol, RetryableTransport {
         
         logger.debug("SSEClientTransport discovered POST endpoint: \(newURL.absoluteString)")
         postURL = newURL
-        
         
         // If someone was awaiting postURL, resume them
         postURLWaitContinuation?.resume(returning: newURL)
