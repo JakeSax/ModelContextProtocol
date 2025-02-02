@@ -87,3 +87,12 @@ extension StringOrIntValue {
         }
     }
 }
+
+extension StringOrIntValue: CustomStringConvertible {
+    public var description: String {
+        switch self {
+        case .int(let int): int.description
+        case .string(let string): string.description
+        }
+    }
+}

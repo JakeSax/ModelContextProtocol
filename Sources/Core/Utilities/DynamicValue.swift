@@ -292,3 +292,16 @@ extension DynamicValue {
     }
 }
             
+extension DynamicValue: CustomDebugStringConvertible {
+    public var debugDescription: String {
+        switch self {
+        case .string(let string): string
+        case .int(let int): int.description
+        case .double(let double): double.description
+        case .dictionary(let dictionary): dictionary.debugDescription
+        case .array(let array): array.debugDescription
+        case .bool(let bool): bool.description
+        case .null: "nil"
+        }
+    }
+}

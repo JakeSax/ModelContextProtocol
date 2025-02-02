@@ -13,6 +13,10 @@ public struct JSONRPCError: AnyJSONRPCMessage, Error, Equatable {
     public let id: RequestID?
     public let error: ErrorDetails
     
+    public var debugDescription: String {
+        "jsonRPC: \(jsonrpc), id: \(id?.description ?? "nil"), error: \(error.debugDescription)"
+    }
+    
     // MARK: Initialization
     public init(id: RequestID?, error: ErrorDetails) {
         self.jsonrpc = Self.jsonrpcVersion
@@ -21,7 +25,7 @@ public struct JSONRPCError: AnyJSONRPCMessage, Error, Equatable {
     }
     
     // MARK: Data Structures
-    public struct ErrorDetails: Codable, Sendable, Equatable {
+    public struct ErrorDetails: Codable, Sendable, Equatable, CustomDebugStringConvertible {
         /// The error type that occurred.
         public let code: Int
         
@@ -35,6 +39,10 @@ public struct JSONRPCError: AnyJSONRPCMessage, Error, Equatable {
         
         public var jsonrpcErrorCode: ErrorCode? {
             .init(rawValue: code)
+        }
+        
+        public var debugDescription: String {
+            "code: \(code), jsonRPCError: \(jsonrpcErrorCode?.localizedDescription ?? "nil"), message: \(message), data: \(String(describing: data)))"
         }
         
         public init(code: Int, message: String, data: DynamicValue? = nil) {

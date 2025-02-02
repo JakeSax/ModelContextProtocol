@@ -15,6 +15,10 @@ public struct JSONRPCNotification: AnyJSONRPCMessage, Equatable {
     public let method: String
     public let params: [String: DynamicValue]?
     
+    public var debugDescription: String {
+        "jsonRPC: \(jsonrpc), method: \(method), params: \(params?.debugDescription ?? "nil")"
+    }
+    
     // MARK: Initialization
     public init(method: String, params: [String: DynamicValue]?) {
         self.jsonrpc = Self.jsonrpcVersion

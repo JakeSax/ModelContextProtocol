@@ -5,19 +5,33 @@
 //  Created by Jake Sax on 1/28/25.
 //
 
-public enum JSONRPCMessage: Codable, Sendable, Equatable {
+public enum JSONRPCMessage: Codable, Sendable, Equatable, CustomDebugStringConvertible {
     case request(JSONRPCRequest)
     case notification(JSONRPCNotification)
     case response(JSONRPCResponse)
     case error(JSONRPCError)
     
-    var value: any AnyJSONRPCMessage {
+    /// The associated value with the case.
+    public var value: any AnyJSONRPCMessage {
         switch self {
         case .request(let request): request
         case .notification(let notification): notification
         case .response(let response): response
         case .error(let error): error
         }
+    }
+    
+    private var caseDescription: String {
+        switch self {
+        case .request(_): "Request"
+        case .notification(_): "Notification"
+        case .response(_): "Response"
+        case .error(_): "Error"
+        }
+    }
+    
+    public var debugDescription: String {
+        "\(caseDescription): \(value.debugDescription)"
     }
     
     // MARK: Codable Conformance
@@ -57,16 +71,18 @@ public enum JSONRPCMessage: Codable, Sendable, Equatable {
             )
         }
         
-        if jsonObject["id"] != nil, jsonObject["method"] != nil {
+        let hasID = jsonObject["id"] != nil
+        let hasMethod = jsonObject["method"] != nil
+        if hasID, hasMethod {
             // This is a **request** (has an `id` and `method`)
             self = .request(try container.decode(JSONRPCRequest.self))
-        } else if jsonObject["method"] != nil {
+        } else if hasMethod {
             // This is a **notification** (has a `method` but no `id`)
             self = .notification(try container.decode(JSONRPCNotification.self))
-        } else if jsonObject["id"] != nil, jsonObject["result"] != nil {
+        } else if hasID, jsonObject["result"] != nil {
             // This is a **response** (has an `id` and a `result`)
             self = .response(try container.decode(JSONRPCResponse.self))
-        } else if jsonObject["id"] != nil, jsonObject["error"] != nil {
+        } else if hasID, jsonObject["error"] != nil {
             // This is an **error** response (has an `id` and an `error` object)
             self = .error(try container.decode(JSONRPCError.self))
         } else {

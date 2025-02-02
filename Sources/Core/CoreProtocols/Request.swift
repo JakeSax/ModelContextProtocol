@@ -48,7 +48,6 @@ public struct RequestMetadata: Codable, Sendable, Equatable {
     public let progressToken: ProgressToken?
 }
 
-
 /// The default request paramters if no additional properties are explicitly expected. It only
 /// includes ``RequestMetadata`` with the ability to hold more, unspecified values.
 public struct DefaultRequestParameters: RequestParameters {

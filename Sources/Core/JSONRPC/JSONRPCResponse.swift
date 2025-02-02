@@ -15,6 +15,10 @@ public struct JSONRPCResponse: AnyJSONRPCMessage, Equatable {
     public let id: RequestID
     public let result: DynamicValue
     
+    public var debugDescription: String {
+        "jsonRPC: \(jsonrpc), id: \(id), result: \(result.debugDescription)"
+    }
+    
     // MARK: Initialization
     public init(id: RequestID, result: DynamicValue) {
         self.jsonrpc = Self.jsonrpcVersion
@@ -32,7 +36,7 @@ public struct JSONRPCResponse: AnyJSONRPCMessage, Equatable {
     /// Attempts to convert this ``JSONRPCResult`` into a ``Result`` of the provided type.
     /// - Parameter request: The type of ``Result`` to convert `self` to.
     /// - Returns: `self` converted to the provided type, if successful.
-    func asResult<T: Result>(_ resultType: T.Type) throws -> T {
+    public func asResult<T: Result>(_ resultType: T.Type) throws -> T {
         let encodedResult = try JSONEncoder().encode(self.result)
         return try JSONDecoder().decode(T.self, from: encodedResult)
     }

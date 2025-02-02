@@ -16,6 +16,10 @@ public struct JSONRPCRequest: AnyJSONRPCMessage, Equatable {
     public let method: String
     public let params: [String: DynamicValue]?
     
+    public var debugDescription: String {
+        "jsonRPC: \(jsonrpc), id: \(id), method: \(method), params: \(params?.debugDescription ?? "nil")"
+    }
+    
     // MARK: Initialization
     public init(id: RequestID, method: String, params: [String : DynamicValue]?) {
         self.jsonrpc = Self.jsonrpcVersion
