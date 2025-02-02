@@ -6,7 +6,8 @@ import PackageDescription
 let package = Package(
     name: "ModelContextProtocol",
     platforms: [
-        .macOS(.v13), .iOS(.v16)
+        .macOS(.v13),
+        .iOS(.v16)
     ],
     products: [
         // Users can import just MCPCore, or choose MCPClient or MCPServer as well.
@@ -25,6 +26,7 @@ let package = Package(
     ],
     dependencies: [
         // Add any dependencies your package needs
+        .package(url: "https://github.com/apple/swift-http-types.git", from: "1.3.1")
     ],
     targets: [
         .target(
@@ -34,7 +36,11 @@ let package = Package(
         ),
         .target(
             name: "MCPClient",
-            dependencies: ["MCPCore"],
+            dependencies: [
+                "MCPCore",
+                .product(name: "HTTPTypes", package: "swift-http-types"),
+                .product(name: "HTTPTypesFoundation", package: "swift-http-types")
+            ],
             path: "Sources/Client"
         ),
         .target(
