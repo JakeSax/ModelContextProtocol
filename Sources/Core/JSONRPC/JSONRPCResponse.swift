@@ -8,7 +8,7 @@
 import Foundation
 
 /// A successful (non-error) response to a request.
-public struct JSONRPCResponse: AnyJSONRPCMessage, Equatable {
+public struct JSONRPCResponse: AnyJSONRPCResponse, Equatable {
     
     // MARK: Properties
     public let jsonrpc: String

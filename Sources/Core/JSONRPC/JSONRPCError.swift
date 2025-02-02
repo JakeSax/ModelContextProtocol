@@ -6,7 +6,7 @@
 //
 
 /// A response to a request that indicates an error occurred.
-public struct JSONRPCError: AnyJSONRPCMessage, Error, Equatable {
+public struct JSONRPCError: AnyJSONRPCResponse, Error, Equatable {
     
     // MARK: Properties
     public let jsonrpc: String

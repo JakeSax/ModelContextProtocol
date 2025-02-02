@@ -17,8 +17,8 @@ public enum JSONRPC {
     public static let jsonrpcVersion: String = "2.0"
 }
 
-/// Any Message that includes the JSON-RPC version being used.
-public protocol AnyJSONRPCMessage: Codable, Sendable, CustomDebugStringConvertible {
+/// Any message that includes the JSON-RPC version being used.
+public protocol AnyJSONRPCMessage: Codable, Sendable, Equatable, CustomDebugStringConvertible {
     /// The version of JSON-RPC being used, defaults to "2.0"
     var jsonrpc: String { get }
 }
@@ -28,3 +28,5 @@ extension AnyJSONRPCMessage {
     public static var jsonrpcVersion: String { JSONRPC.jsonrpcVersion }
 }
 
+/// A JSON-RPC message in response to a request that may be a successful result or an error.
+public protocol AnyJSONRPCResponse: AnyJSONRPCMessage {}
