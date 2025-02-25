@@ -8,37 +8,74 @@
 import OSLog
 
 #if os(macOS) || os(Linux)
-/// Transport implementation using stdio for process-based communication.
+/// A transport implementation that communicates with a subprocess via standard input/output.
+///
+/// `StdioTransport` launches and manages an external process, communicating with it by:
+/// - Writing to the process's standard input
+/// - Reading from the process's standard output
+/// - Monitoring the process's standard error
+///
 /// This transport is designed for long-running MCP servers launched via command line.
+/// Each message sent must be a single line (no embedded newlines), and messages are
+/// delimited by newline characters.
+///
+/// - Note: The transport automatically adds PATH entries for common Node.js installations
+///   to improve compatibility with JavaScript-based MCP servers.
 public actor StdioTransport: Transport {
     
     // MARK: Public Properties
+    
+    /// The current state of the transport.
+    /// Starts as `.disconnected` and transitions through states as the transport operates.
     public private(set) var state = TransportState.disconnected
+    
+    /// Configuration options that control transport behavior.
     public let configuration: TransportConfiguration
-    private let logger: Logger
+    
+    /// Returns whether the underlying process is currently running.
+    /// - Returns: `true` if the process is running, `false` otherwise.
     public var isRunning: Bool { process?.isRunning ?? false }
     
     // MARK: Private Properties
-    // Stored options for constructing the process each time
+    
+    /// Logger used for diagnostic information.
+    private let logger: Logger
+    
+    /// The executable command to run.
     private let command: String
+    
+    /// Arguments to pass to the command.
     private let arguments: [String]
+    
+    /// Environment variables to set for the process.
     private let environment: [String: String]?
     
-    // Process & pipes are recreated on each start()
+    /// The managed subprocess.
     private var process: Process?
+    
+    /// Pipe for writing to the process's standard input.
     private var inputPipe: Pipe?
+    
+    /// Pipe for reading from the process's standard output.
     private var outputPipe: Pipe?
+    
+    /// Pipe for reading from the process's standard error.
     private var errorPipe: Pipe?
     
+    /// Continuation for the messages stream.
     private var messagesContinuation: AsyncThrowingStream<Data, Error>.Continuation?
+    
+    /// Task that manages reading from pipes.
     private var processTask: Task<Void, Never>?
     
-    
     // MARK: Initialization
-    /// Initialize a stdio transport for a command-line MCP server
+    
+    /// Initializes a stdio transport for a command-line MCP server using options.
+    ///
     /// - Parameters:
-    ///   - options: Transport options
-    ///   - configuration: Transport configuration
+    ///   - options: Configuration options for the subprocess.
+    ///   - configuration: Transport-level configuration for handling messages.
+    ///   - logger: Logger for diagnostic information.
     public init(
         options: Options,
         configuration: TransportConfiguration = .default,
@@ -51,7 +88,15 @@ public actor StdioTransport: Transport {
         self.logger = logger
     }
     
-    /// Convenience initializer
+    /// Initializes a stdio transport for a command-line MCP server.
+    ///
+    /// - Parameters:
+    ///   - command: The executable to run (must be in PATH).
+    ///   - arguments: Command-line arguments to pass to the executable.
+    ///   - environment: Additional environment variables to set for the process.
+    ///     These are merged with the current process environment.
+    ///   - configuration: Transport-level configuration for handling messages.
+    ///   - logger: Logger for diagnostic information.
     public init(
         command: String,
         arguments: [String] = [],
@@ -66,7 +111,16 @@ public actor StdioTransport: Transport {
         self.logger = logger
     }
     
-    // MARK: Methods
+    // MARK: Transport Protocol Methods
+    
+    /// Provides a stream of messages received from the subprocess's standard output.
+    ///
+    /// Each message is delivered as `Data` with the trailing newline removed.
+    /// If the transport is not already running, calling this method will
+    /// automatically start it.
+    ///
+    /// - Returns: An asynchronous stream of data messages received from the subprocess.
+    /// - Note: When the caller stops consuming the stream, the transport will be stopped.
     public func messages() -> AsyncThrowingStream<Data, Error> {
         AsyncThrowingStream { continuation in
             self.messagesContinuation = continuation
@@ -92,6 +146,18 @@ public actor StdioTransport: Transport {
         }
     }
     
+    /// Starts the transport by launching the subprocess.
+    ///
+    /// This method:
+    /// 1. Validates that the command exists in PATH
+    /// 2. Creates pipes for stdin, stdout, and stderr
+    /// 3. Launches the subprocess with the configured arguments and environment
+    /// 4. Sets up message monitoring
+    ///
+    /// - Throws: `TransportError.invalidState` if the command is not found or
+    ///   the process cannot be started.
+    /// - Note: If the transport is already connected or connecting, this method
+    ///   will log a warning and return without doing anything.
     public func start() async throws {
         guard state == .disconnected else {
             logger.warning("Transport already connected or connecting: \(self.state)")
@@ -149,7 +215,6 @@ public actor StdioTransport: Transport {
         errorPipe = newErrorPipe
         
         // Monitor stdout and stderr
-        // We'll store these tasks in processTask, so they can be canceled on stop()
         processTask = Task {
             await withTaskGroup(of: Void.self) { group in
                 group.addTask { await self.readMessages(newOutputPipe) }
@@ -161,6 +226,16 @@ public actor StdioTransport: Transport {
         state = .connected
     }
     
+    /// Stops the transport and cleans up all resources.
+    ///
+    /// This method:
+    /// 1. Terminates the subprocess if it's running
+    /// 2. Closes all pipes
+    /// 3. Finishes the message stream
+    /// 4. Resets the transport state to `.disconnected`
+    ///
+    /// If the transport is already disconnected or disconnecting, this method
+    /// returns immediately without doing anything.
     public func stop() async {
         guard state != .disconnected, state != .disconnecting else {
             return
@@ -216,7 +291,20 @@ public actor StdioTransport: Transport {
         state = .disconnected
     }
     
-    public func send(_ data: Data, timeout _: Duration? = nil) async throws {
+    /// Sends data to the subprocess via standard input.
+    ///
+    /// This method validates the message, appends a newline character, and writes
+    /// the data to the subprocess's standard input.
+    ///
+    /// - Parameters:
+    ///   - data: The data to send. Must not contain embedded newlines.
+    ///   - timeout: Optional timeout for the send operation. Currently unused.
+    ///
+    /// - Throws:
+    ///   - `TransportError.invalidState` if the transport is not connected or the pipe is unavailable
+    ///   - `TransportError.messageTooLarge` if the message exceeds the configured size limit
+    ///   - `TransportError.invalidMessage` if the message contains embedded newlines
+    public func send(_ data: Data, timeout: Duration? = nil) async throws {
         guard state == .connected else {
             throw TransportError.invalidState(
                 reason: "Transport not connected, transport state: \(state.debugDescription)"
@@ -241,12 +329,12 @@ public actor StdioTransport: Transport {
         inputPipe.fileHandleForWriting.write(messageData)
     }
     
+    // MARK: - Private Methods
     
-    // MARK: Private Methods
     /// Validates that the command exists in the system PATH.
     ///
-    /// This method attempts to locate the command by using the system's `which` utility,
-    /// which searches the directories in the PATH environment variable for the specified command.
+    /// Uses the system's `which` utility to search the PATH environment variable
+    /// for the specified command.
     ///
     /// - Throws: `TransportError.invalidState` if the command cannot be found or
     ///   if there's an error in the validation process.
@@ -280,6 +368,9 @@ public actor StdioTransport: Transport {
         }
     }
     
+    /// Monitors the stderr output from the subprocess and logs it.
+    ///
+    /// - Parameter errorPipe: The pipe connected to the subprocess's stderr.
     private func monitorStdErr(_ errorPipe: Pipe) async {
         for await line in errorPipe.bytes.lines {
             // Some MCP servers use stderr for logging
@@ -287,6 +378,11 @@ public actor StdioTransport: Transport {
         }
     }
     
+    /// Reads and processes messages from the subprocess's stdout.
+    ///
+    /// Each line read from stdout is converted to Data and yielded to the messages stream.
+    ///
+    /// - Parameter outputPipe: The pipe connected to the subprocess's stdout.
     private func readMessages(_ outputPipe: Pipe) async {
         do {
             for try await line in outputPipe.bytes.lines {
@@ -304,6 +400,12 @@ public actor StdioTransport: Transport {
         await stop()
     }
     
+    /// Handles subprocess termination.
+    ///
+    /// Called when the subprocess exits. Updates the transport state based on
+    /// the exit code and triggers transport shutdown.
+    ///
+    /// - Parameter process: The terminated process.
     private func handleProcessTermination(_ process: Process) async {
         let status = process.terminationStatus
         if status != 0 {
@@ -355,7 +457,7 @@ public actor StdioTransport: Transport {
         throw TransportError.unsupportedPlatform
     }
     
-    public func stop() {
+    public func stop() async {
         // No-op
     }
     
