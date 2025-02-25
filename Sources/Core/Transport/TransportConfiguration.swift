@@ -17,13 +17,13 @@ public struct TransportConfiguration: Sendable {
     
     // MARK: Properties
     /// Maximum time allowed to establish a connection, in seconds.
-    public var connectTimeout: Duration
+    public let connectTimeout: Duration
     
     /// Maximum time allowed to send a message, in seconds.
-    public var sendTimeout: Duration
+    public let sendTimeout: Duration
     
     /// Maximum allowed message size, in bytes.
-    public var maxMessageSize: Int
+    public let maxMessageSize: Int
     
     /// Defines the retry policy for short-lived operations.
     public var retryPolicy: RetryPolicy

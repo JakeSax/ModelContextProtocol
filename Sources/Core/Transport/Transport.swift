@@ -26,7 +26,7 @@ public protocol Transport: Actor {
     func start() async throws
     
     /// Stop the transport, closing any connections and cleaning up resources.
-    func stop()
+    func stop() async
     
     /// Send data across the transport, optionally with a custom timeout.
     func send(_ data: Data, timeout: Duration?) async throws

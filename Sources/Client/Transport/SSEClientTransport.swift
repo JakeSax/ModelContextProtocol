@@ -92,7 +92,7 @@ public actor SSEClientTransport: Transport, RetryableTransport {
     }
     
     /// Stops the SSE connection, finishing the message stream and canceling tasks.
-    public func stop() {
+    public func stop() async {
         logger.debug("Stopping SSEClientTransport.")
         sseReadTask?.cancel()
         sseReadTask = nil
@@ -161,10 +161,10 @@ public actor SSEClientTransport: Transport, RetryableTransport {
     }
     
     /// Called when the consumer of `messages()` cancels their stream.
-    private func handleMessagesStreamTerminated() {
+    private func handleMessagesStreamTerminated() async {
         // Must remain on actor
         logger.debug("Messages stream terminated by consumer. Stopping SSE transport.")
-        stop()
+        await stop()
     }
     
     // MARK: SSE Read Loop

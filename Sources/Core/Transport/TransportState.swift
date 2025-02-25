@@ -17,6 +17,19 @@ public enum TransportState: Sendable {
     case connected
     /// Transport has failed
     case failed(error: Error)
+    
+    /// Whether `self` is `failed(Error)`.
+    var isFailed: Bool {
+        self.error != nil
+    }
+    
+    /// The encountered error, if any.
+    var error: Error? {
+        switch self {
+        case .failed(let error): error
+        default: nil
+        }
+    }
 }
 
 extension TransportState: CustomStringConvertible, CustomDebugStringConvertible {

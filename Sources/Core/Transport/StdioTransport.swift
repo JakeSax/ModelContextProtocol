@@ -100,6 +100,9 @@ public actor StdioTransport: Transport {
         
         state = .connecting
         
+        // Validate that the command exists in PATH
+        try validateCommand()
+        
         let newInputPipe = Pipe()
         let newOutputPipe = Pipe()
         let newErrorPipe = Pipe()
@@ -158,11 +161,11 @@ public actor StdioTransport: Transport {
         state = .connected
     }
     
-    public func stop() {
+    public func stop() async {
         guard state != .disconnected, state != .disconnecting else {
             return
         }
-        
+        let error = state.error
         state = .disconnecting
         
         processTask?.cancel()
@@ -170,8 +173,12 @@ public actor StdioTransport: Transport {
         
         if let process, process.isRunning {
             process.terminate()
-            Task.detached {
-                process.waitUntilExit()
+            // Wait for the process to exit before proceeding
+            await withCheckedContinuation { continuation in
+                Task.detached {
+                    process.waitUntilExit()
+                    continuation.resume()
+                }
             }
         }
         
@@ -199,14 +206,21 @@ public actor StdioTransport: Transport {
         errorPipe = nil
         
         // Finish the message stream
-        messagesContinuation?.finish()
+        if let error {
+            messagesContinuation?.finish(throwing: error)
+        } else {
+            messagesContinuation?.finish()
+        }
+        
         messagesContinuation = nil
         state = .disconnected
     }
     
     public func send(_ data: Data, timeout _: Duration? = nil) async throws {
         guard state == .connected else {
-            throw TransportError.invalidState(reason: "Transport not connected")
+            throw TransportError.invalidState(
+                reason: "Transport not connected, transport state: \(state.debugDescription)"
+            )
         }
         guard let inputPipe else {
             throw TransportError.invalidState(reason: "Pipe not available")
@@ -229,6 +243,43 @@ public actor StdioTransport: Transport {
     
     
     // MARK: Private Methods
+    /// Validates that the command exists in the system PATH.
+    ///
+    /// This method attempts to locate the command by using the system's `which` utility,
+    /// which searches the directories in the PATH environment variable for the specified command.
+    ///
+    /// - Throws: `TransportError.invalidState` if the command cannot be found or
+    ///   if there's an error in the validation process.
+    private func validateCommand() throws {
+        // Create a process to run the "which" command to search for our command in PATH
+        let whichProcess = Process()
+        whichProcess.executableURL = URL(fileURLWithPath: "/usr/bin/which")
+        whichProcess.arguments = [command]
+        
+        do {
+            // Run the "which" command
+            try whichProcess.run()
+            whichProcess.waitUntilExit()
+            
+            // Check exit status - nonzero means the command wasn't found
+            if whichProcess.terminationStatus != 0 {
+                throw TransportError.invalidState(
+                    reason: "Command '\(command)' not found in PATH. Please ensure it is installed and accessible."
+                )
+            }
+        } catch {
+            // Handle errors from the "which" process itself
+            if let nsError = error as NSError?, nsError.domain == NSPOSIXErrorDomain {
+                throw TransportError.invalidState(
+                    reason: "Error validating command: \(error.localizedDescription)"
+                )
+            } else {
+                // Propagate other unexpected errors
+                throw error
+            }
+        }
+    }
+    
     private func monitorStdErr(_ errorPipe: Pipe) async {
         for await line in errorPipe.bytes.lines {
             // Some MCP servers use stderr for logging
@@ -245,13 +296,15 @@ public actor StdioTransport: Transport {
                 }
                 messagesContinuation?.yield(data)
             }
+        } catch is CancellationError {
+            logger.warning("STDOUT message reading cancelled")
         } catch {
-            logger.error("Error reading stdout messages: \(error)")
+            logger.error("Caught error reading stdout messages: \(error)")
         }
-        stop()
+        await stop()
     }
     
-    private func handleProcessTermination(_ process: Process) {
+    private func handleProcessTermination(_ process: Process) async {
         let status = process.terminationStatus
         if status != 0 {
             logger.error("Process terminated with non-zero exit code: \(status)")
@@ -259,7 +312,7 @@ public actor StdioTransport: Transport {
                 error: TransportError.operationFailed(detail: "Process exited with status \(status)")
             )
         }
-        stop()
+        await stop()
     }
 }
 
