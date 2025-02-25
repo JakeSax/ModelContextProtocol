@@ -44,22 +44,34 @@ public class MCPClient {
     ///   - encoder: The JSONEncoder to use for encoding requests. Defaults to a
     ///   new instance.
     ///   - logger: The OSLog Logger for logging errors and debug information.
-    ///    Defaults to a Logger with subsystem `"MCP"` and category `"MCPClient"`.
+    ///    Defaults to a Logger with subsystem `"MCPClient"` and category `serverURL`.
     public init(
         serverURL: URL,
         session: URLSession = .shared,
         decoder: JSONDecoder = .init(),
         encoder: JSONEncoder = .init(),
-        logger: Logger = .init(subsystem: "MCP", category: "MCPClient")
+        logger: Logger? = nil
     ) {
         self.serverURL = serverURL
         self.session = session
         self.decoder = decoder
         self.encoder = encoder
-        self.logger = logger
+        self.logger = logger ?? Logger(subsystem: "MCPClient", category: serverURL.absoluteString)
     }
     
     // MARK: Methods
+//    public func beginConnection(additionalHeaders: HTTPFields? = nil) async throws {
+//        let response = try await sendRequest(
+//            InitializeRequest(
+//                params: .init(
+//                    capabilities: <#T##ClientCapabilities#>,
+//                    clientInfo: <#T##Implementation#>,
+//                    protocolVersion: <#T##String#>
+//                )
+//            ),
+//            requestID: 1
+//        )
+//    }
     
     /// Sends a JSON-RPC request to the MCP server and returns the decoded response.
     ///
@@ -130,6 +142,7 @@ public class MCPClient {
             throw jsonRCPError
         }
     }
+    
     
     // MARK: Data Structures
     

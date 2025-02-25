@@ -7,26 +7,26 @@
 
 import Foundation
 import OSLog
+import MCPCore
 
-/// A concrete implementation of `MCPTransport` providing Server-Sent Events (SSE) support.
+/// A concrete implementation of `Transport` providing Server-Sent Events (SSE) support.
 ///
 /// This transport uses:
 /// - An indefinite GET request to the SSE endpoint for receiving events.
-/// - A short-lived POST for sending data, using an endpoint typically announced by the server via an SSE `endpoint` event.
+/// - A short-lived POST for sending data, using an endpoint typically announced by the server
+/// via an SSE `endpoint` event.
 /// It also supports retries via `RetryableTransport`.
-public actor SSEClientTransport: TransportProtocol, RetryableTransport {
+public actor SSEClientTransport: Transport, RetryableTransport {
     
     // MARK: Public Properties
     public private(set) var state = TransportState.disconnected
     public private(set) var configuration: TransportConfiguration
     
     // MARK: Internal Properties
-    
     /// Optional post URL, typically discovered from an SSE `endpoint` event
     private(set) var postURL: URL?
     
     // MARK: Private Properties
-    
     /// SSE endpoint URL
     private let sseURL: URL
     
@@ -44,8 +44,7 @@ public actor SSEClientTransport: TransportProtocol, RetryableTransport {
     
     private let logger: Logger
     
-    // MARK: Lifecycle
-    
+    // MARK: Initialization
     /// Initialize an SSEClientTransport.
     ///
     /// - Parameters:
@@ -66,8 +65,7 @@ public actor SSEClientTransport: TransportProtocol, RetryableTransport {
         logger.debug("Initialized SSEClientTransport with sseURL=\(sseURL.absoluteString)")
     }
     
-    // MARK: Public
- 
+    // MARK: Methods
     /// Provides a stream of inbound SSE messages as `Data`.
     /// This call does not start the transport if it's not already started. The caller must `start()` first if needed.
     public func messages() -> AsyncThrowingStream<Data, Error> {
@@ -122,8 +120,7 @@ public actor SSEClientTransport: TransportProtocol, RetryableTransport {
         }
     }
     
-    // MARK: - RetryableTransport
-    
+    // MARK: RetryableTransport
     /// Retry a block of code with the configured `TransportRetryPolicy`.
     public func withRetry<T: Sendable>(
         operation: String,
@@ -151,12 +148,12 @@ public actor SSEClientTransport: TransportProtocol, RetryableTransport {
             detail: "\(operation) failed after \(maxAttempts) attempts: \(String(describing: lastError))")
     }
     
-    
-    
     /// Internally store the messages continuation inside the actor.
-    private func storeMessagesContinuation(_ cont: AsyncThrowingStream<Data, Error>.Continuation) {
-        messagesContinuation = cont
-        cont.onTermination = { _ in
+    private func storeMessagesContinuation(
+        _ continuation: AsyncThrowingStream<Data, Error>.Continuation
+    ) {
+        messagesContinuation = continuation
+        continuation.onTermination = { _ in
             Task { [weak self] in
                 await self?.handleMessagesStreamTerminated()
             }
@@ -170,8 +167,7 @@ public actor SSEClientTransport: TransportProtocol, RetryableTransport {
         stop()
     }
     
-    // MARK: - SSE Read Loop
-    
+    // MARK: SSE Read Loop
     /// Main SSE read loop, reading lines from the SSE endpoint and yielding them as needed.
     private func runSSEReadLoop() async {
         do {
@@ -292,12 +288,11 @@ public actor SSEClientTransport: TransportProtocol, RetryableTransport {
     }
     
     /// Parse "retry: xyz" line, returning xyz as Int (milliseconds).
-    nonisolated private func parseRetry(_ line: String) -> Int? {
+    static func parseRetry(_ line: String) -> Int? {
         Int(line.dropFirst("retry:".count).trimmingCharacters(in: .whitespaces))
     }
     
-    // MARK: - POST Send
-    
+    // MARK: POST Send
     /// Perform a short-lived POST request to send data.
     private func performPOSTSend(
         _ data: Data,
@@ -343,8 +338,7 @@ public actor SSEClientTransport: TransportProtocol, RetryableTransport {
         self.postURLWaitContinuation = continuation
     }
     
-    // MARK: - Timeout Helper
-    
+    // MARK: Timeout Helper
     /// Executes an asynchronous throwing operation with a timeout.
     ///
     /// This method runs the provided operation with a specified timeout duration. If the operation
@@ -397,52 +391,67 @@ public actor SSEClientTransport: TransportProtocol, RetryableTransport {
     }
     
     // MARK: Data Structures
-//    private enum SSEEventType: String {
-//        case message
-//        case endpoint
-//        case unknown
-//        
-//        init(rawValue: String) {
-//            switch rawValue {
-//            case "message": self = .message
-//            case "endpoint": self = .endpoint
-//            default: self = .unknown
-//            }
-//        }
-//    }
-    
+    /// Represents the different types of lines that can appear in a Server-Sent Events (SSE) stream.
     private enum SSELine {
+        /// An empty line, which signals the end of an SSE event.
         case empty
+        
+        /// An event type line (e.g., "event: message").
+        /// - Parameter String: The event type name.
         case event(String)
+        
+        /// A data line containing the event payload.
+        /// - Parameter Data: The UTF-8 encoded data content.
         case data(Data)
+        
+        /// An event ID line.
+        /// - Parameter String: The event identifier.
         case id(String)
-        case retry(Int)
+        
+        /// A retry line specifying the reconnection time.
+        /// - Parameter Int: The retry interval in milliseconds.
+        case retry(milliseconds: Int)
+        
+        /// An unknown or malformed line.
+        /// - Parameter String: The original line content.
         case unknown(String)
         
+        /// Parses a line from an SSE stream into its corresponding `SSELine` case.
+        ///
+        /// This method handles the following SSE field types:
+        /// - Empty lines (event delimiters)
+        /// - event: Field specifying the event type
+        /// - data: Field containing the event data
+        /// - id: Field providing the event ID
+        /// - retry: Field indicating retry timeout
+        ///
+        /// - Parameter line: A single line from the SSE stream.
+        /// - Returns: The parsed `SSELine` representing the content and type of the line.
+        ///  Returns `.unknown` if the line doesn't match any known SSE field format.
         static func parse(_ line: String) -> SSELine {
             if line.isEmpty {
                 return .empty
             } else if line.hasPrefix("event:") {
-                let value = String(line.dropFirst(6)).trimmingCharacters(in: .whitespaces)
-                return .event(value)
+                return .event(String(line.dropFirst(6)).trimmingCharacters(in: .whitespaces))
             } else if line.hasPrefix("data:") {
-                let text = String(line.dropFirst(5)).trimmingCharacters(in: .whitespaces)
-                if let chunk = text.data(using: .utf8) {
-                    return .data(chunk)
+                guard let chunk = String(line.dropFirst(5))
+                    .trimmingCharacters(in: .whitespaces)
+                    .data(using: .utf8)
+                else {
+                    return .unknown(line)
                 }
-                return .unknown(line)
+                return .data(chunk)
             } else if line.hasPrefix("id:") {
-                let value = String(line.dropFirst(3)).trimmingCharacters(in: .whitespaces)
-                return .id(value)
+                return .id(String(line.dropFirst(3)).trimmingCharacters(in: .whitespaces))
             } else if line.hasPrefix("retry:") {
-                if let ms = Int(line.dropFirst("retry:".count).trimmingCharacters(in: .whitespaces)) {
-                    return .retry(ms)
+                guard let ms = SSEClientTransport.parseRetry(line) else {
+                    return .unknown(line)
                 }
+                return .retry(milliseconds: ms)
+            } else {
                 return .unknown(line)
             }
-            return .unknown(line)
         }
     }
 
-    
 }

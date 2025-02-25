@@ -5,7 +5,51 @@
 //  Created by Jake Sax on 1/27/25.
 //
 
-/// A prompt or prompt template that the server offers.
+/** A prompt or prompt template that the server offers.
+ 
+ **Example Prompt**
+ ```swift
+ Prompt(
+     name: "analyze-code",
+     description: "Analayze code for potential improvements",
+     arguments: [
+         Argument(
+             name: "language",
+             description: "Programming language",
+             required: true
+         )
+     ]
+ )
+ ```
+ 
+ **Example JSON Request + Response**
+
+ Request
+ ```json
+ {
+     method: "prompts/list"
+ }
+ ```
+ 
+ Response
+ ```json
+ {
+     prompts: [
+         {
+             name: "analyze-code",
+             description: "Analyze code for potential improvements",
+             arguments: [
+                 {
+                     name: "language",
+                     description: "Programming language",
+                     required: true
+                 }
+             ]
+         }
+     ]
+ }
+ ```
+ */
 public struct Prompt: Codable, Sendable, Equatable {
     
     // MARK: Properties

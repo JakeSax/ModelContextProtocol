@@ -10,7 +10,7 @@ import OSLog
 #if os(macOS) || os(Linux)
 /// Transport implementation using stdio for process-based communication.
 /// This transport is designed for long-running MCP servers launched via command line.
-public actor StdioTransport: TransportProtocol {
+public actor StdioTransport: Transport {
     
     // MARK: Public Properties
     public private(set) var state = TransportState.disconnected
@@ -103,8 +103,6 @@ public actor StdioTransport: TransportProtocol {
         let newInputPipe = Pipe()
         let newOutputPipe = Pipe()
         let newErrorPipe = Pipe()
-        
-        try validateCommand()
         
         let newProcess = Process()
         newProcess.executableURL = URL(fileURLWithPath: "/usr/bin/env") // locate command in PATH
@@ -253,13 +251,6 @@ public actor StdioTransport: TransportProtocol {
         stop()
     }
     
-    private func validateCommand() throws {
-        let fm = FileManager.default
-        guard fm.isExecutableFile(atPath: command), fm.isExecutableFile(atPath: "/usr/bin/env") else {
-            throw TransportError.operationFailed(detail: "Command not executable: \(command)")
-        }
-    }
-    
     private func handleProcessTermination(_ process: Process) {
         let status = process.terminationStatus
         if status != 0 {
@@ -272,13 +263,10 @@ public actor StdioTransport: TransportProtocol {
     }
 }
 
-// MARK: - Async Pipe helpers
-
-
 #else
 
 /// Stub implementation for platforms that don't support Process
-public actor StdioTransport: MCPTransport {
+public actor StdioTransport: Transport {
     
     // MARK: Properties
     public private(set) var state = TransportState.disconnected
