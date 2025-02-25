@@ -48,8 +48,8 @@ public class MCPClient {
     public init(
         serverURL: URL,
         session: URLSession = .shared,
-        decoder: JSONDecoder = .init(),
-        encoder: JSONEncoder = .init(),
+        decoder: JSONDecoder = JSONDecoder(),
+        encoder: JSONEncoder = JSONEncoder(),
         logger: Logger? = nil
     ) {
         self.serverURL = serverURL

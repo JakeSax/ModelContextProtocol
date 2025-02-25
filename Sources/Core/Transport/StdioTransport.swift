@@ -446,7 +446,7 @@ public actor StdioTransport: Transport {
     }
     
     // MARK: Public
-  
+    
     public func messages() -> AsyncThrowingStream<Data, Error> {
         AsyncThrowingStream { continuation in
             continuation.finish(throwing: TransportError.unsupportedPlatform)
@@ -461,7 +461,7 @@ public actor StdioTransport: Transport {
         // No-op
     }
     
-    public func send(_: Data, timeout _: TimeInterval? = nil) async throws {
+    public func send(_ data: Data, timeout: Duration?) async throws {
         throw TransportError.unsupportedPlatform
     }
 }
