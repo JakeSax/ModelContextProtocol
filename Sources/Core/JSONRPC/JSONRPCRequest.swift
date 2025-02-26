@@ -39,7 +39,7 @@ public struct JSONRPCRequest: AnyJSONRPCMessage, Equatable {
     /// Attempts to convert this ``JSONRPCRequest`` into a ``Request`` of the provided type.
     /// - Parameter request: The type of ``Request`` to convert `self` to.
     /// - Returns: `self` converted to the provided type, if successful.
-    func asRequest<T: Request>(_ requestType: T.Type) throws -> T {
+    public func asRequest<T: Request>(_ requestType: T.Type) throws -> T {
         guard let method = T.MethodIdentifier(rawValue: self.method),
               method == T.method else {
             throw RequestConversionError.invalidMethod

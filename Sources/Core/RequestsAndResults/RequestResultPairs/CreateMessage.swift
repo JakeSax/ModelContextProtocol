@@ -5,10 +5,20 @@
 //  Created by Jake Sax on 1/27/25.
 //
 
-/// A request from the server to sample an LLM via the client. The client has full
-/// discretion over which model to select. The client should also inform the user
-/// before beginning sampling, to allow them to inspect the request (human in
-/// the loop) and decide whether to approve it.
+/**
+ A request from the server to sample an LLM via the client. The client has full
+ over which model to select. The client should also inform the user beginning
+ sampling, to allow them to inspect the request (human in loop) and decide
+ whether to approve it.
+ 
+ > Model Context Protocol (MCP) provides a standardized way for servers to
+ request LLM sampling (“completions” or “generations”) from language models
+ via clients. This flow allows clients to maintain control over model access,
+ selection, and permissions while enabling servers to leverage AI
+ capabilities—with no server API keys necessary. Servers can request text or
+ image-based interactions and optionally include context from MCP servers
+ in their prompts.
+ */
 public struct CreateMessageRequest: Request {
     
     // MARK: Static Properties
@@ -35,7 +45,6 @@ public struct CreateMessageRequest: Request {
         
         /// Request to include context from MCP servers
         public let includeContext: ContextInclusion?
-
         
         /// Server's model preferences (client may ignore)
         public let modelPreferences: ModelPreferences?
@@ -55,8 +64,8 @@ public struct CreateMessageRequest: Request {
     /// Available context inclusion options for message creation
     public enum ContextInclusion: String, Codable, Sendable, Equatable {
         case allServers
-        case none
         case thisServer
+        case none
     }
     
     // MARK: Codable Conformance

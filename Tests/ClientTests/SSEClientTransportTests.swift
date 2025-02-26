@@ -16,16 +16,16 @@ struct SSEClientTransportTests {
     @Test("Initialization sets correct properties")
     func testInitialization() async {
         let sseURL = URL(string: "https://example.com/events")!
-        let postURL = URL(string: "https://example.com/post")!
         let config = TransportConfiguration(
             connectTimeout: .seconds(10),
             sendTimeout: .seconds(5)
         )
         
         let transport = SSEClientTransport(
-            sseURL: sseURL,
-            postURL: postURL,
-            configuration: config
+            networkConfiguration: SSEClientTransport.NetworkConfiguration(
+                serverURL: sseURL
+            ),
+            transportConfiguration: config
         )
         
         #expect(await transport.state == .disconnected)
@@ -248,7 +248,7 @@ struct SSEClientTransportTests {
     @Test("Maintains actor isolation")
     func testActorIsolation() async {
         let transport = SSEClientTransport(
-            sseURL: URL(string: "https://example.com/events")!
+            url: URL(string: "https://example.com/events")!
         )
         
         // Create multiple tasks that concurrently interact with the transport

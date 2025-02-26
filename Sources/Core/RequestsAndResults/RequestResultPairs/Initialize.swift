@@ -6,7 +6,7 @@
 //
 
 /// Request sent from client to server when first connecting to begin initialization.
-public struct InitializeRequest: Request {
+public struct InitializeRequest: AnyClientRequest {
     
     // MARK: Static Properties
     public static let method: ClientRequest.Method = .initialize
@@ -28,7 +28,7 @@ public struct InitializeRequest: Request {
     // MARK: Data Structures
     /// Parameters for the initialize request
     public struct Parameters: RequestParameters {
-        /// Client's supported capabilities
+        /// The client's supported capabilities
         public let capabilities: ClientCapabilities
         
         /// Information about the client implementation

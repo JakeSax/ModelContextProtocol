@@ -8,6 +8,8 @@
 import Foundation
 import OSLog
 import MCPCore
+import HTTPTypes
+import HTTPTypesFoundation
 
 /// A concrete implementation of `Transport` providing Server-Sent Events (SSE) support.
 ///
@@ -53,15 +55,13 @@ public actor SSEClientTransport: Transport, RetryableTransport {
     public private(set) var configuration: TransportConfiguration
     
     // MARK: Internal Properties
-    /// Optional post URL, typically discovered from an SSE `endpoint` event
+    /// The URL to which POST requests should be sent, typically discovered
+    /// from an SSE `endpoint` event.
     private(set) var postURL: URL?
     
     // MARK: Private Properties
-    /// SSE endpoint URL used to establish the persistent connection
-    private let sseURL: URL
-    
-    /// URLSession used for both SSE streaming and short-lived POST requests
-    private let session: URLSession
+    /// The configuration for how to find and communicate with the server.
+    private let networkConfig: NetworkConfiguration
     
     /// Task that manages the indefinite SSE read loop
     private var sseReadTask: Task<Void, Never>?
@@ -78,22 +78,35 @@ public actor SSEClientTransport: Transport, RetryableTransport {
     /// Initialize an SSEClientTransport.
     ///
     /// - Parameters:
-    ///   - sseURL: The SSE endpoint URL for receiving events.
-    ///   - postURL: Optional known URL for POSTing data. If not provided, we discover it via SSE events.
-    ///   - configuration: The `TransportConfiguration` to use.
+    ///   - url: The URL to communicate with via SSE.
+    ///   - transportConfiguration: The `TransportConfiguration` to use.
+    ///   - logger: The Logger instance to use, with a default value.
     public init(
-        sseURL: URL,
-        postURL: URL? = nil,
-        configuration: TransportConfiguration = .default,
-        session: URLSession = URLSession(configuration: .ephemeral),
+        url: URL,
+        transportConfiguration: TransportConfiguration = .default,
         logger: Logger = .init(subsystem: "MCP", category: "SSEClientTransport")
     ) {
-        self.sseURL = sseURL
-        self.postURL = postURL
-        self.configuration = configuration
-        self.session = session
+        self.networkConfig = NetworkConfiguration(serverURL: url)
+        self.configuration = transportConfiguration
         self.logger = logger
-        logger.debug("Initialized SSEClientTransport with sseURL=\(sseURL.absoluteString)")
+        logger.debug("Initialized SSEClientTransport with server URL: \(self.networkConfig.url.absoluteString)")
+    }
+    
+    /// Initialize an SSEClientTransport.
+    /// 
+    /// - Parameters:
+    ///   - networkConfiguration: The configuration for how to find and communicate with the server.
+    ///   - transportConfiguration: The `TransportConfiguration` to use.
+    ///   - logger: The Logger instance to use, with a default value.
+    public init(
+        networkConfiguration: NetworkConfiguration,
+        transportConfiguration: TransportConfiguration = .default,
+        logger: Logger = .init(subsystem: "MCP", category: "SSEClientTransport")
+    ) {
+        self.networkConfig = networkConfiguration
+        self.configuration = transportConfiguration
+        self.logger = logger
+        logger.debug("Initialized SSEClientTransport with server URL: \(networkConfiguration.url.absoluteString)")
     }
     
     // MARK: Methods
@@ -274,15 +287,21 @@ public actor SSEClientTransport: Transport, RetryableTransport {
     ///
     /// - Note: This method applies the `connectTimeout` from the transport configuration
     private func establishSSEConnection() async throws -> URLSession.AsyncBytes {
-        var request = URLRequest(url: sseURL)
-        request.timeoutInterval = configuration.connectTimeout.timeInterval
-        request.setValue("text/event-stream", forHTTPHeaderField: "Accept")
+        var request = HTTPRequest(url: networkConfig.url)
+        if let additionalHeaders = networkConfig.additionalHeaders {
+            request.headerFields = additionalHeaders
+        }
+        request.headerFields[.accept] = "text/event-stream"
+        guard var urlRequest = URLRequest(httpRequest: request) else {
+            throw URLError(.badURL)
+        }
+        urlRequest.timeoutInterval = configuration.connectTimeout.timeInterval
         
-        let (byteStream, response) = try await session.bytes(for: request)
+        let (byteStream, response) = try await networkConfig.session.bytes(for: urlRequest)
         try validateHTTPResponse(response)
         
         state = .connected
-        logger.info("SSEClientTransport connected to \(self.sseURL.absoluteString, privacy: .private).")
+        logger.info("SSEClientTransport connected to \(self.networkConfig.url.absoluteString, privacy: .private).")
         
         return byteStream
     }
@@ -404,7 +423,7 @@ public actor SSEClientTransport: Transport, RetryableTransport {
             throw TransportError.invalidMessage(message: "Empty or invalid 'endpoint' SSE event.")
         }
         
-        guard let baseURL = URL(string: "/", relativeTo: sseURL)?.baseURL,
+        guard let baseURL = URL(string: "/", relativeTo: networkConfig.url)?.baseURL,
               let newURL = URL(string: text, relativeTo: baseURL)
         else {
             throw TransportError.invalidMessage(message: "Could not form absolute endpoint from: \(text)")
@@ -418,11 +437,6 @@ public actor SSEClientTransport: Transport, RetryableTransport {
         postURLWaitContinuation = nil
     }
     
-    /// Parse "retry: xyz" line, returning xyz as Int (milliseconds).
-    static func parseRetry(_ line: String) -> Int? {
-        Int(line.dropFirst("retry:".count).trimmingCharacters(in: .whitespaces))
-    }
-    
     // MARK: POST Send
     /// Perform a short-lived POST request to send data.
     private func performPOSTSend(
@@ -430,15 +444,21 @@ public actor SSEClientTransport: Transport, RetryableTransport {
         to url: URL,
         timeout: Duration?
     ) async throws {
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.timeoutInterval = (timeout ?? configuration.sendTimeout).timeInterval
-        request.httpBody = data
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        var request = HTTPRequest(method: .post, url: url)
+        if let additionalHeaders = networkConfig.additionalHeaders {
+            request.headerFields = additionalHeaders
+        }
+        request.headerFields[.contentType] = "application/json"
         
-        let (_, response) = try await session.data(for: request)
-        guard let httpResp = response as? HTTPURLResponse,
-            (200...299).contains(httpResp.statusCode)
+        guard var urlRequest = URLRequest(httpRequest: request) else {
+            throw URLError(.badURL)
+        }
+        urlRequest.timeoutInterval = (timeout ?? configuration.sendTimeout).timeInterval
+        urlRequest.httpBody = data
+        
+        let (_, response) = try await networkConfig.session.data(for: urlRequest)
+        guard let httpResponse = response as? HTTPURLResponse,
+            (200...299).contains(httpResponse.statusCode)
         else {
             throw TransportError.operationFailed(detail: "POST request to \(url) failed with non-2xx response.")
         }
@@ -530,4 +550,30 @@ public actor SSEClientTransport: Transport, RetryableTransport {
         }
     }
 
+}
+
+extension SSEClientTransport {
+    
+    /// The network configuration for the MCPClient.
+    public struct NetworkConfiguration: Sendable {
+        /// SSE endpoint URL used to establish the persistent connection
+        public let url: URL
+        /// URLSession used for both SSE streaming and short-lived POST requests
+        public let session: URLSession
+        /// Any headers to send along with requests, potentially authentication headers.
+        public let additionalHeaders: HTTPFields?
+        
+        /// The network configuration for the MCPClient.
+        /// - Parameters:
+        ///   - serverURL: The URL where the MCP server is located.
+        ///   - session: The URLSession instance to use for network requests. Defaults
+        ///    to `.shared`.
+        ///   - additionalHeaders: Optional HTTP header fields to include in the request.
+        ///   These headers will be merged with the default headers.
+        public init(serverURL: URL, session: URLSession = .shared, additionalHeaders: HTTPFields? = nil) {
+            self.url = serverURL
+            self.session = session
+            self.additionalHeaders = additionalHeaders
+        }
+    }
 }

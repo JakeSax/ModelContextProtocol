@@ -11,7 +11,7 @@ import Foundation
 public typealias RequestID = StringOrIntValue
 
 /// A Codable value that may be a String or an Int.
-public enum StringOrIntValue: Codable, Equatable, Sendable {
+public enum StringOrIntValue: Codable, Equatable, Sendable, Hashable {
     
     // MARK: Cases
     case int(Int)

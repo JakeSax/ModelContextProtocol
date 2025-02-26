@@ -72,7 +72,7 @@ struct RequestSerializationTests {
             params: .init(
                 capabilities: ClientCapabilities(
                     roots: .init(listChanged: true),
-                    sampling: [:],
+                    supportsSampling: true,
                     experimental: [:]
                 ),
                 clientInfo: Implementation(name: "TestClient", version: "1.0.0"),

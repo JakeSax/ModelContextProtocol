@@ -36,7 +36,7 @@ public struct JSONRPCNotification: AnyJSONRPCMessage, Equatable {
     /// Attempts to convert this ``JSONRPCNotification`` into a ``Notification`` of the provided type.
     /// - Parameter request: The type of ``Notification`` to convert `self` to.
     /// - Returns: `self` converted to the provided type, if successful.
-    func asNotification<T: Notification>(_ notificationType: T.Type) throws -> T {
+    public func asNotification<T: Notification>(_ notificationType: T.Type) throws -> T {
         guard let method = T.MethodIdentifier(rawValue: self.method),
               method == T.method else {
             throw NotificationConversionError.invalidMethod
