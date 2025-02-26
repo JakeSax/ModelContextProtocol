@@ -8,7 +8,7 @@ ModelContextProtocol is an under-development Swift 6.0 implementation of Anthrop
 
 The package is split into three components:
 1. MCPCore: The core data types and functionality shared between the MCPClient and MCPServer.
-2. MCPClient: A relatively simple implementation for the an MCPClient.
+2. MCPClient: A relatively simple implementation for an MCPClient.
 3. MCPServer: An interface for a server to provide MCP functionality.
 
 While the direction of the project is subject to change, the server implementation will likely be dependent on (and agnostic towards) external server frameworks such as [Vapor](https://github.com/vapor/vapor) or [Hummingbird](https://github.com/hummingbird-project/hummingbird) for flexible implementation into existing server applications.
