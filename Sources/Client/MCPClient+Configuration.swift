@@ -9,14 +9,44 @@ import Foundation
 import MCPCore
 import HTTPTypes
 
-extension MCPClient {
-    public struct Configuration: Sendable {
+public extension MCPClient {
+    /// Configuration for an MCPClient instance.
+    ///
+    /// This structure encapsulates all the settings needed to establish and maintain
+    /// a connection to an MCP server, including protocol parameters, transport mechanism,
+    /// and JSON coding options.
+    struct Configuration: Sendable {
+        
+        /// Parameters used for initializing the connection with the server.
+        ///
+        /// These parameters describe the client's capabilities, identity, and supported
+        /// protocol version, which are sent to the server during the initialization handshake.
         nonisolated public let initialization: InitializeRequest.Parameters
+        
+        /// The transport mechanism used for network communication.
+        ///
+        /// This transport handles the low-level data transfer between client and server,
+        /// abstracting the specific network protocol (e.g., WebSockets, HTTP) from the client.
         let transport: any Transport
+        
+        /// The encoder used to convert Swift objects to JSON data for transmission.
+        ///
+        /// Used when sending requests, notifications, and responses to the server.
         nonisolated let encoder: JSONEncoder
+        
+        /// The decoder used to convert received JSON data to Swift objects.
+        ///
+        /// Used when processing messages received from the server.
         nonisolated let decoder: JSONDecoder
         
-        init(
+        /// Creates a new configuration with the specified parameters.
+        ///
+        /// - Parameters:
+        ///   - initialization: The parameters to use when initializing the connection to the server.
+        ///   - transport: The transport mechanism to use for communication.
+        ///   - encoder: The JSON encoder to use for outgoing messages. Defaults to a new instance.
+        ///   - decoder: The JSON decoder to use for incoming messages. Defaults to a new instance.
+        public init(
             initialization: InitializeRequest.Parameters,
             transport: any Transport,
             encoder: JSONEncoder = JSONEncoder(),
@@ -26,33 +56,6 @@ extension MCPClient {
             self.transport = transport
             self.encoder = encoder
             self.decoder = decoder
-        }
-    }
-    
-    /// The network configuration for the MCPClient.
-    public struct NetworkConfiguration: Sendable {
-        /// The URL at which the MCP server is located.
-        public let serverURL: URL
-        /// The URLSession used to perform HTTP requests.
-        public let session: URLSession
-        /// Any headers to send along with requests, potentially authentication headers.
-        public let additionalHeaders: HTTPFields?
-        
-        /// The network configuration for the MCPClient.
-        /// - Parameters:
-        ///   - serverURL: The URL where the MCP server is located.
-        ///   - session: The URLSession instance to use for network requests. Defaults
-        ///    to `.shared`.
-        ///   - additionalHeaders: Optional HTTP header fields to include in the request.
-        ///   These headers will be merged with the default headers.
-        public init(
-            serverURL: URL,
-            session: URLSession = .shared,
-            additionalHeaders: HTTPFields? = nil
-        ) {
-            self.serverURL = serverURL
-            self.session = session
-            self.additionalHeaders = additionalHeaders
         }
     }
 }

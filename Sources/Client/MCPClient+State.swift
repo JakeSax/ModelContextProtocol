@@ -8,7 +8,7 @@
 import Foundation
 import MCPCore
 
-extension MCPClient {
+public extension MCPClient {
     
     enum State: Equatable {
         /// Client is disconnected
