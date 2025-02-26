@@ -35,6 +35,10 @@ public enum JSONRPCMessage: Codable, Sendable, Equatable, CustomDebugStringConve
     }
     
     // MARK: Codable Conformance
+    enum CodingKeys: String, CodingKey {
+        case jsonrpc, id, method, result, error
+    }
+    
     public func encode(to encoder: any Encoder) throws {
         var container = encoder.singleValueContainer()
         switch self {
@@ -46,11 +50,10 @@ public enum JSONRPCMessage: Codable, Sendable, Equatable, CustomDebugStringConve
     }
     
     public init(from decoder: any Decoder) throws {
-        let container = try decoder.singleValueContainer()
-        let jsonObject = try container.decode([String: DynamicValue].self)
+        let container = try decoder.container(keyedBy: CodingKeys.self)
         
         // Ensure this is a valid JSON-RPC message
-        guard let jsonrpc = jsonObject["jsonrpc"]?.stringValue else {
+        guard let jsonrpc = try container.decodeIfPresent(String.self, forKey: .jsonrpc) else {
             throw JSONRPCError(
                 id: -1,
                 error: .init(
@@ -60,6 +63,7 @@ public enum JSONRPCMessage: Codable, Sendable, Equatable, CustomDebugStringConve
                 )
             )
         }
+        
         guard jsonrpc == JSONRPC.jsonrpcVersion else {
             throw JSONRPCError(
                 id: -1,
@@ -71,22 +75,23 @@ public enum JSONRPCMessage: Codable, Sendable, Equatable, CustomDebugStringConve
             )
         }
         
-        let hasID = jsonObject["id"] != nil
-        let hasMethod = jsonObject["method"] != nil
+        let hasID = container.contains(.id)
+        let hasMethod = container.contains(.method)
+        
         if hasID, hasMethod {
-            // This is a **request** (has an `id` and `method`)
-            self = .request(try container.decode(JSONRPCRequest.self))
+            // This is a request (has an `id` and `method`)
+            self = .request(try JSONRPCRequest(from: decoder))
         } else if hasMethod {
-            // This is a **notification** (has a `method` but no `id`)
-            self = .notification(try container.decode(JSONRPCNotification.self))
-        } else if hasID, jsonObject["result"] != nil {
-            // This is a **response** (has an `id` and a `result`)
-            self = .response(try container.decode(JSONRPCResponse.self))
-        } else if hasID, jsonObject["error"] != nil {
-            // This is an **error** response (has an `id` and an `error` object)
-            self = .error(try container.decode(JSONRPCError.self))
+            // This is a notification (has a `method` but no `id`)
+            self = .notification(try JSONRPCNotification(from: decoder))
+        } else if hasID, container.contains(.result) {
+            // This is a response (has an `id` and a `result`)
+            self = .response(try JSONRPCResponse(from: decoder))
+        } else if hasID, container.contains(.error) {
+            // This is an error (has an `id` and an `error` object)
+            self = .error(try JSONRPCError(from: decoder))
         } else {
-            // The JSON structure doesn’t match any valid JSON-RPC message type
+            // Invalid JSON-RPC message
             throw JSONRPCError(
                 id: -1,
                 error: .init(
