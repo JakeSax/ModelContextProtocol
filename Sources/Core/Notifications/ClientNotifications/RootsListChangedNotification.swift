@@ -8,7 +8,7 @@
 /// A notification from the client to the server, informing it that the list of roots has changed.
 /// This notification should be sent whenever the client adds, removes, or modifies any root.
 /// The server should then request an updated list of roots using the ``ListRootsRequest``.
-public struct RootsListChangedNotification: Notification {
+public struct RootsListChangedNotification: AnyClientNotification {
     public static let method: ClientNotification.Method = .rootsListChanged
     /// The method identifier for this notification.
     public let method: ClientNotification.Method

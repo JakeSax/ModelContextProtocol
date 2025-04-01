@@ -18,7 +18,7 @@ public protocol Request<MethodIdentifier>: MethodIdentified, Equatable {
     init(params: Parameters)
     
     /// The ``Result`` that is expected as a response to this request.
-    associatedtype Response: MCPCore.Result
+    associatedtype Result: MCPCore.Result
 }
 
 /// The parameters that may be inclued in a ``Request``.
@@ -46,6 +46,10 @@ public struct RequestMetadata: Codable, Sendable, Equatable {
     /// parameter is an opaque token that will be attached to any subsequent notifications.
     /// The receiver is not obligated to provide these notifications.
     public let progressToken: ProgressToken?
+    
+    public init(progressToken: ProgressToken?) {
+        self.progressToken = progressToken
+    }
 }
 
 /// The default request paramters if no additional properties are explicitly expected. It only

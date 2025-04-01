@@ -6,16 +6,18 @@
 //
 
 /// A request to read a specific resource URI.
-public struct ReadResourceRequest: Request {
+public struct ReadResourceRequest: AnyClientRequest {
     
     public static let method: ClientRequest.Method = .readResource
-    public typealias Response = ReadResourceResult
+    public typealias Result = ReadResourceResult
     
     /// The method identifier for the request
     public let method: MethodIdentifier
     
     /// The parameters for the request
     public let params: ReadResourceParams
+    
+    public var clientRequest: ClientRequest { .readResource(self) }
     
     public init(params: ReadResourceParams) {
         self.method = Self.method

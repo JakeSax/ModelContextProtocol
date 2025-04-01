@@ -33,6 +33,22 @@ public enum ServerResult: Codable, Sendable {
     case callTool(CallToolResult)
     case complete(CompleteResult)
     
+    /// The ``Result`` stored in the associated value of the enum case.
+    public var result: any Result {
+        switch self {
+        case .standard(let anyResult): anyResult
+        case .initialize(let initializeResult): initializeResult
+        case .listResources(let listResourcesResult): listResourcesResult
+        case .listResourceTemplates(let listResourceTemplatesResult): listResourceTemplatesResult
+        case .readResource(let readResourceResult): readResourceResult
+        case .listPrompts(let listPromptsResult): listPromptsResult
+        case .getPrompt(let getPromptResult): getPromptResult
+        case .listTools(let listToolsResult): listToolsResult
+        case .callTool(let callToolResult): callToolResult
+        case .complete(let completeResult): completeResult
+        }
+    }
+    
     // MARK: Codable Conformance
     public init(from decoder: Decoder) throws {
         let container = try decoder.singleValueContainer()

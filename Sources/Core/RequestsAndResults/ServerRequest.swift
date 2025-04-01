@@ -11,7 +11,7 @@ protocol AnyServerRequest: Request, MethodIdentified where MethodIdentifier == S
 /// An enumeration of all the possible server requests.
 public enum ServerRequest: Codable, Sendable {
     
-    case ping(PingRequest)
+    case ping(ServerPingRequest)
     case createMessage(CreateMessageRequest)
     case listRoots(ListRootsRequest)
     
@@ -44,7 +44,7 @@ public enum ServerRequest: Codable, Sendable {
         
         switch method {
         case .ping:
-            self = .ping(try PingRequest(from: decoder))
+            self = .ping(try ServerPingRequest(from: decoder))
         case .createMessage:
             self = .createMessage(try CreateMessageRequest(from: decoder))
         case .listRoots:

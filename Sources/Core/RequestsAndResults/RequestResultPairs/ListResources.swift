@@ -6,16 +6,18 @@
 //
 
 /// A request to retrieve available resources from the server.
-public struct ListResourcesRequest: PaginatedRequest {
+public struct ListResourcesRequest: AnyClientRequest, PaginatedRequest {
     
     public static let method: ClientRequest.Method = .listResources
-    public typealias Response = ListResourcesResult
+    public typealias Result = ListResourcesResult
     
     /// The API method identifier.
     public let method: ClientRequest.Method
     
     /// Optional parameters for the request.
     public let params: PaginationParameters
+    
+    public var clientRequest: ClientRequest { .listResources(self) }
     
     public init(params: PaginationParameters = PaginationParameters()) {
         self.method = Self.method

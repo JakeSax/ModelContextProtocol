@@ -27,13 +27,13 @@ import OSLog
 /// the protocol state according to the MCP specification.
 public actor MCPClient {
     
-    // MARK: Properties
+    // MARK: - Properties
     
     /// Configuration for this client instance.
     ///
     /// Contains settings that define the client's behavior, server connection parameters,
     /// and protocol options.
-    public let configuration: Configuration
+    nonisolated public let configuration: Configuration
     
     /// The current state of the client.
     ///
@@ -41,16 +41,23 @@ public actor MCPClient {
     /// connecting, initializing, running, or failed.
     public private(set) var state: State
     
+    public var notifications: AsyncStream<ServerNotification>
+    private let notificationsContinuation: AsyncStream<ServerNotification>.Continuation
+    
+    /// A handler that may be configured to observe progress for requests, if the server
+    /// chooses to provide ProgressNotifications.
+    public var progressHandler: ProgressHandler?
+    
     /// A dictionary mapping request IDs to their corresponding pending requests.
     ///
     /// Used to track in-flight requests that are awaiting responses from the server.
-    private(set) var pendingRequests: [RequestID : any AnyClientRequest]
+    var pendingRequests: [RequestID : any PendingRequestProtocol]
     
     /// The stream of raw data messages from the transport.
     ///
     /// This stream is created when the client connects and is used to process
     /// incoming messages from the server.
-    private(set) var messageStream: AsyncThrowingStream<Data, any Error>?
+    private(set) var messageStream: MessageStream?
     
     /// The task responsible for processing incoming messages.
     ///
@@ -58,38 +65,78 @@ public actor MCPClient {
     /// to appropriate handlers based on their type.
     private(set) var messageProcessingTask: Task<Void, Error>?
     
+    /// The unique collection of requests that the client has requested progress updates for.
+    private var progressRequests: [ProgressRequest] = []
+    
+    /// The client's implementation of message creation sampling, if the client supports it.
+    private let createMessage: CreateMessageHandler?
+    
+    /// The client's implementation of listing the root URIs available on the client, if the
+    /// client supports it.
+    private let listRoots: ListRootsHandler?
+
+    /// The stream of raw data messages from the transport.
+    typealias MessageStream = AsyncThrowingStream<Data, Error>
+    
+    /// The action for the client to perform on receiving a ``CreateMessageRequest``.
+    public typealias CreateMessageHandler = @Sendable (CreateMessageRequest.Parameters) async throws -> CreateMessageRequest.Result
+    
+    /// The action for the client to perform on receiving a ``ListRootsRequest``.
+    public typealias ListRootsHandler = @Sendable (ListRootsRequest.Parameters) async throws -> ListRootsRequest.Result
+    
+    public typealias ProgressHandler = @Sendable (ProgressNotification.Parameters) -> Void
+    
     /// A logger for recording events and errors.
     ///
     /// Used throughout the client to provide diagnostic information about the
     /// client's operation and any issues encountered.
     nonisolated private let logger: Logger
     
-    // MARK: Initialization
+    /// The ``RequestID`` reserved for the initialization request: `1`.
+    nonisolated public static let initializationRequestID: RequestID = 1
+    
+    // MARK: - Initialization
     /// Creates a new MCPClient instance configured to communicate with an MCP server.
-    ///
+    /// 
     /// The client will not connect to the server until `connect()` is called.
-    ///
+    /// 
     /// - Parameters:
     ///   - configuration: The configuration specifying how to connect to and interact
     ///     with the MCP server.
+    ///   - createMessage: The action for the client to perform on receiving a
+    ///    ``CreateMessageRequest``, if the client supports it. Defaults to nil.
+    ///   - listRoots: The action for the client to perform on receiving a
+    ///   ``ListRootsRequest``, if the client supports it. Defaults to nil.
     ///   - logger: The OSLog Logger for recording events and errors. Defaults to a Logger
     ///     with subsystem `"MCPClient"` and the client's name from the configuration.
     public init(
         configuration: Configuration,
+        createMessage: CreateMessageHandler? = nil,
+        listRoots: ListRootsHandler? = nil,
+        progressHandler: ProgressHandler? = nil,
         logger: Logger? = nil
     ) {
         self.configuration = configuration
+        self.createMessage = createMessage
+        self.progressHandler = progressHandler
+        self.listRoots = listRoots
         self.state = .disconnected
         self.pendingRequests = [:]
         self.messageStream = nil
         self.messageProcessingTask = nil
+        
+        let (notifications, notificationsContinuation) = AsyncStream.makeStream(
+            of: (ServerNotification).self)
+        self.notifications = notifications
+        self.notificationsContinuation = notificationsContinuation
+        
         self.logger = logger ?? Logger(
             subsystem: "MCPClient",
             category: configuration.initialization.clientInfo.name
         )
     }
     
-    // MARK: Connection Management
+    // MARK: - Connection Management
     
     /// Connects to the MCP server and initializes the client.
     ///
@@ -105,8 +152,8 @@ public actor MCPClient {
     /// - Throws: An error if any part of the connection process fails. In case of failure,
     ///   the client transitions to the `.failed` state.
     public func connect() async throws {
-        guard state != .connecting, state != .initializing else {
-            logger.warning("Not beginning connection, already connecting or initializing")
+        guard state != .connecting, state != .initializing, !state.isRunning else {
+            logger.warning("Not beginning connection, already connected, connecting or initializing")
             return
         }
         logger.info("Connecting...")
@@ -124,14 +171,9 @@ public actor MCPClient {
             state = .initializing
             
             let request = InitializeRequest(params: configuration.initialization)
-            let requestID: RequestID = 1
+            let requestID: RequestID = Self.initializationRequestID
             
-            try await sendRequest(request, requestID: requestID)
-            
-            let response = try await response(
-                forRequestType: type(of: request),
-                withID: requestID
-            )
+            let response = try await sendRequest(request, withID: requestID)
             
             // Ensure the client supports the server's JSON-RPC version
             guard response.protocolVersion == self.configuration.initialization.protocolVersion else {
@@ -179,29 +221,16 @@ public actor MCPClient {
         
         // start processing messages from stream
         self.messageProcessingTask = Task {
-            
             for try await messageData in transportMessageStream {
-                
                 try Task.checkCancellation()
-                
-                let message = try decoder.decode(JSONRPCMessage.self, from: messageData)
-                
-                switch message {
-                    
-                case .request(let request):
-                    try await handleRequest(request)
-                    
-                case .notification(let notification):
-                    try await handleNotification(notification)
-                    
-                case .response(let response):
-                    try await handleResponse(response)
-                    
-                case .error(let error):
-                    try await handleError(error)
+                do {
+                    try await processMessage(messageData)
+                } catch {
+                    logger.error("Error processing message: \(error.localizedDescription)")
+                    #warning("are there instances where we shouldn't throw the error and should keep processing?")
+                    throw error
                 }
             }
-            
         }
     }
     
@@ -217,7 +246,7 @@ public extension MCPClient {
     /// until a corresponding response is received.
     ///
     /// - Parameters:
-    ///   - request: The request to send, conforming to `AnyClientRequest`.
+    ///   - request: The request to send
     ///   - requestID: A unique identifier for the request, used to correlate
     ///     the response and track the request's lifecycle.
     ///
@@ -228,42 +257,90 @@ public extension MCPClient {
     ///   - `MCPClientError.duplicateRequestID` if a request with the same ID is already pending.
     ///   - Encoding errors if the request cannot be properly encoded to JSON.
     ///   - Transport errors if the transport fails to send the data.
-    func sendRequest<R: AnyClientRequest>(
-        _ request: R,
-        requestID: RequestID
-    ) async throws {
+    func sendRequest<T: AnyClientRequest>(
+        _ request: T,
+        withID requestID: RequestID = RequestID(UUID())
+    ) async throws -> T.Result {
+        
+        if request.method != .initialize, requestID == Self.initializationRequestID {
+            logger.error("Cannot send request with ID: \"\(Self.initializationRequestID)\", this ID is reserved for initialization.")
+            throw MCPClientError.reusedRequestID(Self.initializationRequestID)
+        }
+        
+        let requestDescription = "request with method: \"\(request.method.rawValue)\" and ID: \(requestID.description)"
+        
+        logger.info("Preparing to send \(requestDescription)")
         
         guard await transport.state == .connected else {
+            logger.error("Cannot send \(requestDescription), transport is not connected")
             throw MCPClientError.transportNotConnected
         }
         
         // Ensure only the initialization notification is being sent if initializing
         if state == .initializing, request.method != .initialize {
-            logger.error("Cannot send non-initialization request while initializing")
+            logger.error("Cannot send non-initialization \(requestDescription) while initializing")
             throw MCPClientError.notConnected
         }
         
         // Ensure the client is running (or initializing as previously handled)
         guard state.isRunning || state == .initializing else {
-            logger.error("Client is not running")
+            logger.error("Cannot send \(requestDescription), Client is not running")
             throw MCPClientError.notConnected
         }
         
-        logger.info("Preparing to send request with method: \(request.method.rawValue), and ID: \(requestID.description)")
-        
-        guard !pendingRequests.keys.contains(requestID) else {
+        // Ensure a request with the same ID is not already in progress
+        guard !pendingRequests.keys.contains(where: { $0 == requestID }) else {
             logger.error("Cannot send a request with the same ID twice: \(requestID.description)")
             throw MCPClientError.duplicateRequestID(requestID)
         }
         
         // Convert to JSONRPCRequest and encode it.
-        let jsonRPCRequest = try JSONRPCRequest(id: requestID, request: request)
-        let encodedRequest = try encoder.encode(jsonRPCRequest)
+        let jsonRPCRequest: JSONRPCRequest = try JSONRPCRequest(id: requestID, request: request)
+        let encodedRequest: Data = try encoder.encode(jsonRPCRequest)
         
-        // Send the request over transport
-        try await transport.send(encodedRequest, timeout: nil)
+        logger.info("Sending \(requestDescription)")
         
-        pendingRequests[requestID] = request
+        if let progressToken = request.params._meta?.progressToken {
+            if let existingProgressRequest = progressRequests.first(where: { $0.token == progressToken }) {
+                logger.warning("Duplicate progress token: \(progressToken.description) for existing request: \(existingProgressRequest.requestID.description), not registering new progress token")
+            } else {
+                logger.info("Registering progress request for token: \(progressToken.description) and requestID: \(requestID.description)")
+                progressRequests.append(ProgressRequest(token: progressToken, requestID: requestID))
+            }
+        }
+        
+        let timeout: Duration = await transport.configuration.sendTimeout
+        
+        return try await withCheckedThrowingContinuation { continuation in
+
+            // Add request to the pending requests and track continuation
+            pendingRequests[requestID] = PendingRequest(
+                request: request,
+                requestID: requestID,
+                continuation: continuation,
+                timeoutDuration: timeout
+            )
+
+            // Send the request over transport
+            Task {
+                do {
+                    try await transport.send(encodedRequest, timeout: nil)
+                    logger.info("Sent \(requestDescription)")
+                    
+                } catch {
+                    logger.error("Error sending \(requestDescription)")
+                    
+                    // Remove any progress requests for the request
+                    progressRequests.removeAll(where: { $0.requestID == requestID })
+                    
+                    // Fail the pending request
+                    if let pendingRequest = self.pendingRequests.removeValue(forKey: requestID) {
+                        await pendingRequest.fail(withError: error)
+                    }
+                    throw error
+                }
+            }
+        }
     }
     
     /// Sends a JSON-RPC response to the server.
@@ -278,7 +355,10 @@ public extension MCPClient {
     ///   - `MCPClientError.transportNotConnected` if the transport is not connected.
     ///   - Encoding errors if the response cannot be properly encoded to JSON.
     ///   - Transport errors if the transport fails to send the data.
-    func sendResponse(_ response: JSONRPCResponse) async throws {
+    func sendResponse(
+        forRequestID requestID: RequestID,
+        withResult result: ClientResult
+    ) async throws {
         // Ensure the client is running
         guard state.isRunning else {
             logger.error("Cannot send response, client is not running")
@@ -292,11 +372,9 @@ public extension MCPClient {
         }
         
         // Send the response using default timeout
-        logger.info("Sending Response: \(response.id.description)")
-        try await transport.send(
-            try encoder.encode(response),
-            timeout: nil
-        )
+        logger.info("Sending Response: \(requestID.description)")
+        let response = try JSONRPCResponse(id: requestID, result: result.result)
+        try await transport.send(try encoder.encode(response), timeout: nil)
     }
     
     /// Sends a JSON-RPC notification to the server.
@@ -333,7 +411,7 @@ public extension MCPClient {
         }
         
         // Send the notification using default timeout
-        logger.info("Emitting notification: \(notification.method.rawValue)")
+        logger.info("Sending notification: \(notification.method.rawValue)")
         try await transport.send(
             try encoder.encode(notification),
             timeout: nil
@@ -343,6 +421,30 @@ public extension MCPClient {
 
 // MARK: - Handling Messages
 private extension MCPClient {
+    
+    /// Attempts to decode the incoming message as a `JSONRPCMessage` and
+    /// process it.
+    ///
+    /// - Parameter messageData: The raw data retrieved from the `transport`'s
+    /// message stream.
+    func processMessage(_ messageData: Data) async throws {
+        let message = try decoder.decode(JSONRPCMessage.self, from: messageData)
+        
+        switch message {
+            
+        case .request(let request):
+            try await handleRequest(request)
+            
+        case .notification(let notification):
+            try await handleNotification(notification)
+            
+        case .response(let response):
+            try await handleResponse(response)
+            
+        case .error(let error):
+            try await handleError(error)
+        }
+    }
     
     /// Processes incoming JSON-RPC requests from the server.
     ///
@@ -368,22 +470,53 @@ private extension MCPClient {
         switch serverRequestMethod {
         case .ping:
             // Send an empty response to acknowledge ping
-            try await sendResponse(JSONRPCResponse(id: request.id, result: PingRequest.Response()))
+            try await sendResponse(
+                forRequestID: request.id, withResult: .result(ServerPingRequest.Result())
+            )
             
         case .createMessage:
-            guard capabilities.supportsSampling else {
+            guard capabilities.supportsSampling, let createMessage else {
                 throw MCPClientError.unsupportedCapability(method: serverRequestMethod)
             }
             let createMessageRequest = try request.asRequest(CreateMessageRequest.self)
-#warning("do something here")
+
+            let result = try await createMessage(createMessageRequest.params)
+            
+            try await sendResponse(forRequestID: request.id, withResult: .createMessage(result))
             
         case .listRoots:
-            guard capabilities.supportsRootListing else {
+            guard capabilities.supportsRootListing, let listRoots else {
                 throw MCPClientError.unsupportedCapability(method: serverRequestMethod)
             }
             let listRootsRequest = try request.asRequest(ListRootsRequest.self)
-#warning("do something here")
+
+            let result = try await listRoots(listRootsRequest.params)
+            
+            try await sendResponse(forRequestID: request.id, withResult: .listRoots(result))
         }
+    }
+    
+    /// Processes incoming JSON-RPC responses from the server.
+    ///
+    /// This method handles responses to client-initiated requests by:
+    /// 1. Matching the response ID to a pending request
+    /// 2. Decoding the response result based on the original request type
+    /// 3. Fulfilling the promise for the waiting caller or triggering appropriate callback
+    ///
+    /// - Parameter response: The decoded JSON-RPC response from the server.
+    ///
+    /// - Throws:
+    ///   - `MCPClientError.unknownResponseID` if the response ID doesn't match any pending request.
+    ///   - Decoding errors if the response result cannot be properly decoded.
+    func handleResponse(_ response: JSONRPCResponse) async throws {
+        guard let pendingRequest: any PendingRequestProtocol = pendingRequests.removeValue(
+            forKey: response.id
+        ) else {
+            throw MCPClientError.unknownResponseID(response.id)
+        }
+        
+//#warning("should we just complete or should we handle individual responses differently?")
+        try await pendingRequest.complete(withResponse: response)
     }
     
     /// Processes incoming JSON-RPC notifications from the server.
@@ -400,114 +533,56 @@ private extension MCPClient {
     ///   - `MCPClientError.unknownNotificationMethod` if the notification method is not recognized.
     ///   - Decoding errors if the notification parameters cannot be properly decoded.
     func handleNotification(_ notification: JSONRPCNotification) async throws {
-        guard let notificationMethod = ServerNotification.Method(rawValue: notification.method) else {
+        guard let notificationMethod = ServerNotification.Method(
+            rawValue: notification.method
+        ) else {
+            logger.warning("Receive unknown notification method: \(notification.method)")
             throw MCPClientError.unknownNotificationMethod(notification.method)
         }
         
         switch notificationMethod {
         case .cancelled:
             let cancelledNotification = try notification.asNotification(CancelledNotification.self)
-#warning("do something here")
+            try await cancelRequest(
+                withID: cancelledNotification.params.requestID,
+                forReason: cancelledNotification.params.reason
+            )
             
         case .progress:
             let progressNotification = try notification.asNotification(ProgressNotification.self)
-#warning("do something here")
+            
+            guard progressRequests.contains(
+                where: { $0.token == progressNotification.params.progressToken }
+            ) else {
+                logger.warning("Received progress notification for unknown progress token: \(progressNotification.params.progressToken)")
+                return
+            }
+            
+            progressHandler?(progressNotification.params)
             
         case .resourceListChanged:
-            let resourceListChangedNotification = try notification.asNotification(ResourceListChangedNotification.self)
-#warning("do something here")
+            let resourceNotification = try notification.asNotification(ResourceListChangedNotification.self)
+            notificationsContinuation.yield(.resourceListChanged(resourceNotification))
             
         case .resourceUpdated:
-            let resourceUpdatedNotification = try notification.asNotification(ResourceUpdatedNotification.self)
-#warning("do something here")
+            let resourceNotification = try notification.asNotification(ResourceUpdatedNotification.self)
+            notificationsContinuation.yield(.resourceUpdated(resourceNotification))
             
         case .promptListChanged:
-            let promptListChangedNotification = try notification.asNotification(PromptListChangedNotification.self)
-#warning("do something here")
+            let promptNotification = try notification.asNotification(PromptListChangedNotification.self)
+            notificationsContinuation.yield(.promptListChanged(promptNotification))
             
         case .toolListChanged:
-            let toolListChangedNotification = try notification.asNotification(ToolListChangedNotification.self)
-#warning("do something here")
+            let toolNotification = try notification.asNotification(ToolListChangedNotification.self)
+            notificationsContinuation.yield(.toolListChanged(toolNotification))
             
         case .loggingMessage:
             let logNotification = try notification.asNotification(LoggingMessageNotification.self)
+            notificationsContinuation.yield(.loggingMessage(logNotification))
             logger.log(
                 level: logNotification.params.level.osLogType,
                 "Received Server Logging Message Notification - logger: \(logNotification.params.logger ?? "nil"), message: \(logNotification.params.data.debugDescription)"
             )
-        }
-    }
-    
-    /// Processes incoming JSON-RPC responses from the server.
-    ///
-    /// This method handles responses to client-initiated requests by:
-    /// 1. Matching the response ID to a pending request
-    /// 2. Decoding the response result based on the original request type
-    /// 3. Fulfilling the promise for the waiting caller or triggering appropriate callback
-    ///
-    /// - Parameter response: The decoded JSON-RPC response from the server.
-    ///
-    /// - Throws:
-    ///   - `MCPClientError.mismatchedRequestID` if the response ID doesn't match any pending request.
-    ///   - Decoding errors if the response result cannot be properly decoded.
-    func handleResponse(_ response: JSONRPCResponse) async throws {
-        guard let pendingRequest: any AnyClientRequest = pendingRequests.removeValue(forKey: response.id) else {
-            throw MCPClientError.mismatchedRequestID
-        }
-        
-        switch pendingRequest.method {
-        case .initialize:
-            let result = try response.asResult(InitializeRequest.Response.self)
-#warning("do something here")
-            
-        case .ping:
-            let result = try response.asResult(PingRequest.Response.self)
-#warning("do something here")
-            
-        case .listResources:
-            let result = try response.asResult(ListResourcesRequest.Response.self)
-#warning("do something here")
-            
-        case .listResourceTemplates:
-            let result = try response.asResult(ListResourceTemplatesRequest.Response.self)
-#warning("do something here")
-            
-        case .readResource:
-            let result = try response.asResult(ReadResourceRequest.Response.self)
-#warning("do something here")
-            
-        case .subscribe:
-            let result = try response.asResult(SubscribeRequest.Response.self)
-#warning("do something here")
-            
-        case .unsubscribe:
-            let result = try response.asResult(UnsubscribeRequest.Response.self)
-#warning("do something here")
-            
-        case .listPrompts:
-            let result = try response.asResult(ListPromptsRequest.Response.self)
-#warning("do something here")
-            
-        case .getPrompt:
-            let result = try response.asResult(GetPromptRequest.Response.self)
-#warning("do something here")
-            
-        case .listTools:
-            let result = try response.asResult(ListToolsRequest.Response.self)
-#warning("do something here")
-            
-        case .callTool:
-            let result = try response.asResult(CallToolRequest.Response.self)
-#warning("do something here")
-            
-        case .setLevel:
-            let result = try response.asResult(SetLevelRequest.Response.self)
-#warning("do something here")
-            
-        case .complete:
-            let result = try response.asResult(CompleteRequest.Response.self)
-#warning("do something here")
-            
         }
     }
     
@@ -523,6 +598,7 @@ private extension MCPClient {
     ///
     /// - Throws: May rethrow the error after processing it.
     func handleError(_ error: JSONRPCError) async throws {
+        logger.error("Received JSON-RPC error: \(error)")
 #warning("do something here")
     }
     
@@ -530,7 +606,7 @@ private extension MCPClient {
     ///
     /// This method monitors the message stream for a response that matches
     /// the provided request ID, then decodes it according to the expected
-    /// response type for the given request type.
+    /// response type for the given rCequest type.
     ///
     /// - Parameters:
     ///   - requestType: The type of request whose response is expected.
@@ -542,33 +618,59 @@ private extension MCPClient {
     ///   - `MCPClientError.notConnected` if the message stream is not available.
     ///   - `MCPClientError.noResponse` if the stream ends without a matching response.
     ///   - Decoding errors if the response cannot be decoded to the expected type.
-    func response<R: AnyClientRequest>(
-        forRequestType requestType: R.Type,
-        withID requestID: RequestID
-    ) async throws -> R.Response {
-        guard let messageStream else {
-            logger.error("Cannot wait for response, messageStream is nil")
-            throw MCPClientError.notConnected
+//    func response<R: AnyClientRequest>(
+//        forRequestType requestType: R.Type,
+//        withID requestID: RequestID
+//    ) async throws -> R.Result {
+//        guard let messageStream else {
+//            logger.error("Cannot wait for response, messageStream is nil")
+//            throw MCPClientError.notConnected
+//        }
+//#warning("if we keep it this way, need to add timeout")
+//        for try await messageData in messageStream {
+//            let message = try decoder.decode(JSONRPCMessage.self, from: messageData)
+//            guard case .response(let response) = message else {
+//                continue
+//            }
+//            guard response.id == requestID else {
+//                continue
+//            }
+//            return try response.asResult(R.Result.self)
+//        }
+//        throw MCPClientError.noResponse(forRequestID: requestID)
+//    }
+//    
+    
+    func cancelRequest(
+        withID requestID: RequestID,
+        forReason reason: String?
+    ) async throws {
+        logger.info("Cancelling request with id: \(requestID.description), for reason: \(reason ?? "nil")")
+        
+        // Initialization requests cannot be cancelled, per the spec
+        guard requestID != Self.initializationRequestID else {
+            logger.error("Cannot cancel initialization request")
+            return
         }
-#warning("if we keep it this way, need to add timeout")
-        for try await messageData in messageStream {
-            let message = try decoder.decode(JSONRPCMessage.self, from: messageData)
-            guard case .response(let response) = message else {
-                continue
-            }
-            guard response.id == requestID else {
-                continue
-            }
-            return try response.asResult(R.Response.self)
+        
+        progressRequests.removeAll(where: { $0.requestID == requestID })
+        
+        guard let pendingRequest = pendingRequests.removeValue(forKey: requestID) else {
+            logger.warning("No pending request found with ID: \(requestID.description)")
+            throw MCPClientError.unknownRequestID(requestID)
         }
-        throw MCPClientError.noResponse(forRequestID: requestID)
+        
+        try await pendingRequest.cancel()
     }
 }
 
 // MARK: - Helpers
 extension MCPClient {
+    
     private var encoder: JSONEncoder { configuration.encoder }
+    
     private var decoder: JSONDecoder { configuration.decoder }
+    
     /// The client's supported capabilities.
     public var capabilities: ClientCapabilities { configuration.initialization.capabilities }
     
@@ -578,3 +680,4 @@ extension MCPClient {
     /// manages the higher-level protocol logic.
     public var transport: any Transport { configuration.transport }
 }
+

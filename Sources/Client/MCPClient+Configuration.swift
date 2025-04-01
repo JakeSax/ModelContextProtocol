@@ -10,6 +10,7 @@ import MCPCore
 import HTTPTypes
 
 public extension MCPClient {
+    
     /// Configuration for an MCPClient instance.
     ///
     /// This structure encapsulates all the settings needed to establish and maintain
@@ -17,11 +18,12 @@ public extension MCPClient {
     /// and JSON coding options.
     struct Configuration: Sendable {
         
+        // MARK: Properties
         /// Parameters used for initializing the connection with the server.
         ///
         /// These parameters describe the client's capabilities, identity, and supported
         /// protocol version, which are sent to the server during the initialization handshake.
-        nonisolated public let initialization: InitializeRequest.Parameters
+        public let initialization: InitializeRequest.Parameters
         
         /// The transport mechanism used for network communication.
         ///
@@ -32,13 +34,14 @@ public extension MCPClient {
         /// The encoder used to convert Swift objects to JSON data for transmission.
         ///
         /// Used when sending requests, notifications, and responses to the server.
-        nonisolated let encoder: JSONEncoder
+        let encoder: JSONEncoder
         
         /// The decoder used to convert received JSON data to Swift objects.
         ///
         /// Used when processing messages received from the server.
-        nonisolated let decoder: JSONDecoder
+        let decoder: JSONDecoder
         
+        // MARK: Initialization
         /// Creates a new configuration with the specified parameters.
         ///
         /// - Parameters:

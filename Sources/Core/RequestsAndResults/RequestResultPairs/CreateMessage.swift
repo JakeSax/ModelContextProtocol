@@ -23,7 +23,7 @@ public struct CreateMessageRequest: Request {
     
     // MARK: Static Properties
     public static let method: ServerRequest.Method = .createMessage
-    public typealias Response = CreateMessageResult
+    public typealias Result = CreateMessageResult
     
     // MARK: Properties
     public let method: ServerRequest.Method

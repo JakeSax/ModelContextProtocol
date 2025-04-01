@@ -6,11 +6,11 @@
 //
 
 /// A request from the client to the server, to ask for completion options.
-public struct CompleteRequest: Request {
+public struct CompleteRequest: AnyClientRequest {
     
     // MARK: Static Properties
     public static let method: ClientRequest.Method = .complete
-    public typealias Response = CompleteResult
+    public typealias Result = CompleteResult
     
     // MARK: Properties
     /// The method identifier for completion requests
@@ -18,6 +18,8 @@ public struct CompleteRequest: Request {
     
     /// The parameters for the completion request
     public let params: Parameters
+    
+    public var clientRequest: ClientRequest { .complete(self) }
     
     
     // MARK: Initialization

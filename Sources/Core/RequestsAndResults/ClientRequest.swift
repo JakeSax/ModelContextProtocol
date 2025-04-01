@@ -6,13 +6,20 @@
 //
 
 /// A Request identified by a ``ClientRequest.Method`` in its `method` property.
-public protocol AnyClientRequest: Request, MethodIdentified where MethodIdentifier == ClientRequest.Method {}
+public protocol AnyClientRequest: Request, MethodIdentified where MethodIdentifier == ClientRequest.Method {
+    /// The typed corresponding ``ClientRequest`` for the request.
+    var clientRequest: ClientRequest { get }
+}
+
+extension AnyClientRequest {
+    typealias ServerResult = MCPCore.Result
+}
 
 /// An enumeration of all the possible client requests.
 public enum ClientRequest: Codable, Sendable {
     
     case initialize(InitializeRequest)
-    case ping(PingRequest)
+    case ping(ClientPingRequest)
     case listResources(ListResourcesRequest)
     case listResourceTemplates(ListResourceTemplatesRequest)
     case readResource(ReadResourceRequest)
@@ -24,6 +31,30 @@ public enum ClientRequest: Codable, Sendable {
     case callTool(CallToolRequest)
     case setLevel(SetLevelRequest)
     case complete(CompleteRequest)
+    
+    /// The ``AnyClientRequest`` stored in the associated value of the enum case.
+    public var request: any AnyClientRequest {
+        switch self {
+        case .initialize(let initializeRequest): initializeRequest
+        case .ping(let pingRequest): pingRequest
+        case .listResources(let listResourcesRequest): listResourcesRequest
+        case .listResourceTemplates(let listResourceTemplatesRequest): listResourceTemplatesRequest
+        case .readResource(let readResourceRequest): readResourceRequest
+        case .subscribe(let subscribeRequest): subscribeRequest
+        case .unsubscribe(let unsubscribeRequest): unsubscribeRequest
+        case .listPrompts(let listPromptsRequest): listPromptsRequest
+        case .getPrompt(let getPromptRequest): getPromptRequest
+        case .listTools(let listToolsRequest): listToolsRequest
+        case .callTool(let callToolRequest): callToolRequest
+        case .setLevel(let setLevelRequest): setLevelRequest
+        case .complete(let completeRequest): completeRequest
+        }
+    }
+    
+    /// The identifier for the *method* of the request.
+    public var method: Method {
+        request.method
+    }
     
     // MARK: Data Structures
     public enum Method: String, AnyMethodIdentifier {
@@ -86,7 +117,7 @@ public enum ClientRequest: Codable, Sendable {
         case .initialize:
             self = .initialize(try InitializeRequest(from: decoder))
         case .ping:
-            self = .ping(try PingRequest(from: decoder))
+            self = .ping(try ClientPingRequest(from: decoder))
         case .listResources:
             self = .listResources(try ListResourcesRequest(from: decoder))
         case .listResourceTemplates:
@@ -118,11 +149,13 @@ public struct SubscribeRequest: AnyClientRequest {
     
     // MARK: Static Properties
     static public let method: ClientRequest.Method = .subscribe
-    public typealias Response = EmptyResult
+    public typealias Result = EmptyResult
     
     // MARK: Properties
     public let method: ClientRequest.Method
     public let params: Parameters
+    
+    public var clientRequest: ClientRequest { .subscribe(self) }
     
     // MARK: Initialization
     public init(params: Parameters) {
@@ -157,12 +190,14 @@ public struct UnsubscribeRequest: AnyClientRequest {
     
     // MARK: Static Properties
     static public let method: ClientRequest.Method = .unsubscribe
-    public typealias Response = EmptyResult
+    public typealias Result = EmptyResult
     
     // MARK: Properties
     public let method: ClientRequest.Method
     
     public let params: Parameters
+    
+    public var clientRequest: ClientRequest { .unsubscribe(self) }
     
     // MARK: Initialization
     public init(params: Parameters) {

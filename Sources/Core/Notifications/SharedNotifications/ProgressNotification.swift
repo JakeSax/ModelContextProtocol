@@ -31,7 +31,7 @@ public struct ProgressNotification: AnyClientNotification {
         /// even if the total is unknown.
         public let progress: Double
         /// The progress token which was given in the initial request, used to associate
-        /// this notification with the request that is proceeding.
+        /// this notification with its associated request.
         public let progressToken: ProgressToken
         /// Total number of items to process (or total progress required), if known.
         public let total: Double?

@@ -6,11 +6,11 @@
 //
 
 /// Used by the client to invoke a tool provided by the server.
-public struct CallToolRequest: Request {
+public struct CallToolRequest: AnyClientRequest {
     
     // MARK: Static Properties
     public static let method: ClientRequest.Method = .callTool
-    public typealias Response = CallToolResult
+    public typealias Result = CallToolResult
     
     // MARK: Properties
     /// The method identifier for tool calls
@@ -18,6 +18,8 @@ public struct CallToolRequest: Request {
     
     /// Parameters for the tool call
     public let params: Parameters
+    
+    public var clientRequest: ClientRequest { .callTool(self) }
     
     // MARK: Initialization
     public init(params: Parameters) {

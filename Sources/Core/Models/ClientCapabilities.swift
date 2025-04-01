@@ -48,7 +48,7 @@ public struct ClientCapabilities: Codable, Sendable, Equatable {
     ///   - roots: Configuration for filesystem "root" listing support. When nil, the client
     ///     does not support root listing operations.
     ///   - supportsSampling: Whether the client supports sampling operations.
-    ///     When true, the `sampling` property will be set to an empty string value.
+    ///     When true, the `sampling` property will be set to an empty dictionary value.
     ///   - experimental: A dictionary of experimental or non-standard capabilities
     ///     supported by the client.
     public init(

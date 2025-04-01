@@ -26,7 +26,7 @@ public struct JSONRPCResponse: AnyJSONRPCResponse, Equatable {
         self.result = result
     }
     
-    public init<T: Result>(id: RequestID, result: T) throws {
+    public init(id: RequestID, result: any Result) throws {
         self.jsonrpc = Self.jsonrpcVersion
         self.id = id
         self.result = try result.toDynamicValue()

@@ -236,7 +236,7 @@ struct RequestSerializationTests {
     }
 
     @Test func encodePingRequest() throws {
-        let request = PingRequest()
+        let request = ServerPingRequest()
         let expectedJSON = """
     {
         "method": "ping"

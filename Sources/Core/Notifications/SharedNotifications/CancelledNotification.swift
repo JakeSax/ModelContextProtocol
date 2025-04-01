@@ -5,7 +5,6 @@
 //  Created by Jake Sax on 1/27/25.
 //
 
-
 /// This notification can be sent by either side (Client or Server) to indicate that it
 /// is cancelling a previously-issued request.
 ///
@@ -38,7 +37,7 @@ public struct CancelledNotification: AnyClientNotification {
         ///
         /// This MUST correspond to the ID of a request previously issued
         /// in the same direction.
-        public let requestId: RequestID
+        public let requestID: RequestID
         /// An optional string describing the reason for the cancellation. This
         /// MAY be logged or presented to the user.
         public let reason: String?
@@ -50,9 +49,15 @@ public struct CancelledNotification: AnyClientNotification {
             reason: String? = nil,
             meta: NotificationMetadata? = nil
         ) {
-            self.requestId = requestID
+            self.requestID = requestID
             self.reason = reason
             self._meta = meta
+        }
+        
+        enum CodingKeys: String, CodingKey {
+            case requestID = "requestId"
+            case reason
+            case _meta
         }
     }
     

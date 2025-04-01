@@ -6,15 +6,17 @@
 //
 
 /// A request to list available tools from the server
-public struct ListToolsRequest: PaginatedRequest {
+public struct ListToolsRequest: AnyClientRequest, PaginatedRequest {
     
     public static let method: ClientRequest.Method = .listTools
-    public typealias Response = ListToolsResult
+    public typealias Result = ListToolsResult
     
     /// The method identifier for the tools/list request
     public let method: ClientRequest.Method
     
     public let params: PaginationParameters
+    
+    public var clientRequest: ClientRequest { .listTools(self) }
     
     public init(params: PaginationParameters = PaginationParameters()) {
         self.method = Self.method

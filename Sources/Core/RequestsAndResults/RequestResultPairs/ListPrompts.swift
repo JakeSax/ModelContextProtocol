@@ -6,16 +6,18 @@
 //
 
 /// A request to retrieve available prompts and prompt templates from the server.
-public struct ListPromptsRequest: PaginatedRequest {
+public struct ListPromptsRequest: AnyClientRequest, PaginatedRequest {
     
     public static let method: ClientRequest.Method = .listPrompts
-    public typealias Response = ListPromptsResult
+    public typealias Result = ListPromptsResult
     
     /// The API method identifier.
     public let method: ClientRequest.Method
     
     /// Optional parameters for the request.
     public let params: PaginationParameters
+    
+    public var clientRequest: ClientRequest { .listPrompts(self) }
     
     public init(params: PaginationParameters = PaginationParameters()) {
         self.method = Self.method

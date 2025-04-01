@@ -28,7 +28,7 @@ public struct JSONRPCRequest: AnyJSONRPCMessage, Equatable {
         self.params = params
     }
     
-    public init<T: Request>(id: RequestID, request: T) throws {
+    public init(id: RequestID, request: any Request) throws {
         self.jsonrpc = Self.jsonrpcVersion
         self.id = id
         self.method = request.method.rawValue

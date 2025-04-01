@@ -6,15 +6,17 @@
 //
 
 /// Request to enable or adjust logging
-public struct SetLevelRequest: Request {
+public struct SetLevelRequest: AnyClientRequest {
     
     // MARK: Static Properties
     public static let method: ClientRequest.Method = .setLevel
-    public typealias Response = EmptyResult
+    public typealias Result = EmptyResult
     
     // MARK: Properties
     public let method: ClientRequest.Method
     public let params: LoggingParameters
+    
+    public var clientRequest: ClientRequest { .setLevel(self) }
     
     // MARK: Initialization
     public init(params: LoggingParameters) {

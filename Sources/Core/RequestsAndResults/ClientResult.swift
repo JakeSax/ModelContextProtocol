@@ -26,6 +26,14 @@ public enum ClientResult: Codable, Sendable {
     case createMessage(CreateMessageResult)
     case listRoots(ListRootsResult)
     
+    public var result: any MCPCore.Result {
+        switch self {
+        case .result(let anyResult): anyResult
+        case .createMessage(let createMessageResult): createMessageResult
+        case .listRoots(let listRootsResult): listRootsResult
+        }
+    }
+    
     // MARK: Codable Conformance
     public init(from decoder: Decoder) throws {
         let container = try decoder.singleValueContainer()

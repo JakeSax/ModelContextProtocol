@@ -16,6 +16,15 @@ public enum ClientNotification: Codable, Sendable {
     case progress(ProgressNotification)
     case rootsListChanged(RootsListChangedNotification)
     
+    public var notification: any AnyClientNotification {
+        switch self {
+        case .cancelled(let cancelledNotification): cancelledNotification
+        case .initialized(let initializedNotification): initializedNotification
+        case .progress(let progressNotification): progressNotification
+        case .rootsListChanged(let rootsListChangedNotification): rootsListChangedNotification
+        }
+    }
+    
     public var method: ClientNotification.Method {
         switch self {
         case .cancelled(let notification): notification.method

@@ -6,15 +6,17 @@
 //
 
 /// Request to get a prompt from the server
-public struct GetPromptRequest: Request {
+public struct GetPromptRequest: AnyClientRequest {
         
     // MARK: Static Properties
     public static let method: ClientRequest.Method = .getPrompt
-    public typealias Response = GetPromptResult
+    public typealias Result = GetPromptResult
     
     // MARK: Properties
     public let method: ClientRequest.Method
     public let params: Parameters
+    
+    public var clientRequest: ClientRequest { .getPrompt(self) }
     
     // MARK: Initialization
     public init(params: Parameters) {

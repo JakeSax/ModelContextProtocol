@@ -21,7 +21,7 @@ public struct InitializeRequest: AnyClientRequest {
     public static let method: ClientRequest.Method = .initialize
     
     /// The expected response type for this request.
-    public typealias Response = InitializeResult
+    public typealias Result = InitializeResult
     
     // MARK: Properties
     /// The method identifier for this request.
@@ -34,6 +34,8 @@ public struct InitializeRequest: AnyClientRequest {
     /// Contains information about the client's capabilities, implementation details,
     /// and supported protocol version.
     public let params: Parameters
+    
+    public var clientRequest: ClientRequest { .initialize(self) }
     
     // MARK: Initialization
     /// Creates a new initialization request with the specified parameters.
