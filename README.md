@@ -1,4 +1,4 @@
-# ModelContextProtocol
+# A Swift Package for the Model Context Protocol
 
 [![Swift](https://img.shields.io/badge/Swift-6.0+-orange.svg)](https://swift.org)
 [![Platforms](https://img.shields.io/badge/Platforms-macOS%2013+%20|%20iOS%2016+-lightgray.svg)](https://swift.org)
