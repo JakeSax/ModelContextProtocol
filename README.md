@@ -4,16 +4,15 @@
 [![Platforms](https://img.shields.io/badge/Platforms-macOS%2013+%20|%20iOS%2016+-lightgray.svg)](https://swift.org)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-ModelContextProtocol is an under-development Swift 6.0 implementation of Anthropic's [Model Context Protocol (MCP)](https://spec.modelcontextprotocol.io), with the goal of providing an easy-to-use, pluggable Swift Package for MCP use across macOS, iOS, + Linux. 
+This was something I was working on, but there is now [an official Swift SDK](https://github.com/modelcontextprotocol/swift-sdk) so I can only recommend to use the official version. This package will no longer be maintained or developeed.
+
+
+ModelContextProtocol was an under-development Swift 6.0 implementation of Anthropic's [Model Context Protocol (MCP)](https://spec.modelcontextprotocol.io), with the goal of providing an easy-to-use, pluggable Swift Package for MCP use across macOS, iOS, + Linux. 
 
 The package is split into three components:
 1. MCPCore: The core data types and functionality shared between the MCPClient and MCPServer.
 2. MCPClient: A relatively simple implementation for an MCPClient.
 3. MCPServer: An interface for a server to provide MCP functionality.
-
-While the direction of the project is subject to change, the server implementation will likely be dependent on (and agnostic towards) external server frameworks such as [Vapor](https://github.com/vapor/vapor) or [Hummingbird](https://github.com/hummingbird-project/hummingbird) for flexible implementation into existing server applications.
-
-> ⚠️ Note: This SDK is under active development. APIs may change as progress continues.
 
 ## Features
 
