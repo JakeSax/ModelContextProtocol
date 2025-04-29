@@ -4,7 +4,7 @@
 [![Platforms](https://img.shields.io/badge/Platforms-macOS%2013+%20|%20iOS%2016+-lightgray.svg)](https://swift.org)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-This was something I was working on, but there is now [an official Swift SDK](https://github.com/modelcontextprotocol/swift-sdk) so I can only recommend to use the official version. This package will no longer be maintained or developeed.
+This was something I was working on, but there is now [an official Swift SDK](https://github.com/modelcontextprotocol/swift-sdk) so I can only recommend to use the official version. This package will no longer be maintained or developed, though I would mention that it does have some nice ergonomics + quality of life features that could be integrated into the official SDK.
 
 
 ModelContextProtocol was an under-development Swift 6.0 implementation of Anthropic's [Model Context Protocol (MCP)](https://spec.modelcontextprotocol.io), with the goal of providing an easy-to-use, pluggable Swift Package for MCP use across macOS, iOS, + Linux. 
